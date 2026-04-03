@@ -1,0 +1,16 @@
+:showtitle:
+:toc: left
+:icons: font
+
+= RKAN
+
+Like NetKAN, but in Rust, so... RKAN.
+
+This tool takes configurations from the `configs/` directory and generates a
+series of `.ckan` files for them in `../ckan/`.
+
+== Configuration Reference
+
+The config files are TOML files. See
+link:./examples/MyCoolMod.toml[MyCoolMod.toml] for an example of the
+configuration syntax used to generate CKAN files.

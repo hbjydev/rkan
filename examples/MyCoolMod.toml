@@ -1,0 +1,95 @@
+# The CKAN identifier for the mod.
+identifier = "MyCoolMod"
+
+# The display name of the mod.
+name = "My Cool Mod for KSP!"
+
+# The GitHub repository where the mod can be found, in the format "owner/repo".
+repo = "Person1/KSP-MyCoolMod"
+
+# The description of the mod. Leave blank to use the description from the GitHub repo.
+abstract = "My cool mod description"
+
+# CKAN tags to apply to the mod.
+# See https://github.com/KSP-CKAN/CKAN/wiki/Suggested-Tags for valid tags.
+tags = ["plugin", "graphics"]
+
+# The license of the mod.
+# See https://github.com/KSP-CKAN/CKAN/blob/master/Spec.md#license for valid licenses.
+license = "MIT"
+
+# An array of all the authors for this mod.
+authors = ["Person 1", "Person 2"]
+
+# The KSP version(s) that this mod is compatible with.
+ksp_version = "1.12"
+
+# If this mod provides any virtual mods, list them here. This is used for mods
+# that are split into multiple parts, such as a plugin and separate texture
+# packs.
+provides = ["MyCoolMod-Textures"]
+
+# A regular expression to match the asset name of the release to use for this mod.
+asset_match = "MyCoolMod-.*.zip"
+
+# Resource information for the mod.
+[resources]
+# The URL to the mod's homepage. If not set, the homepage will be assumed to be
+# at the GitHub repo's landing page.
+homepage = ""
+
+# The URL to the mod's bug tracker. If not set, the bug tracker will be assumed
+# to be at the GitHub repo's issues page.
+bugtracker = ""
+
+# The URL to the mod's repository. If not set, the repository will be assumed
+# to be the GitHub repo's wiki.
+manual = ""
+
+# If the mod uses a specific path to host the mod files, configure that here.
+#[[install]]
+#file = "GameData/MyCoolMod"
+#install_to = "GameData"
+
+#[[install]]
+#file = "GameData/000_MyCoolMod-Utils"
+#install_to = "GameData"
+
+# The mod's dependencies, mapped from CKAN Identifiers to version requirements.
+[dependencies]
+#ModuleManager = "*"
+#Kopernicus = "*"
+
+# Any mods that are recommended to be installed alongside this mod, mapped from
+# CKAN Identifiers to version requirements.
+[recommends]
+#Deferred = "*"
+
+# Any mods that conflict with this mod, mapped from CKAN Identifiers to version
+[conflicts]
+#MyCoolMod-OldTextures = "*"
+
+# If your mod has multiple variants (like a plugin and separate texture packs),
+# you can use "variants" field to specify the different variants. Each variant
+# can have its own asset matcher, name, and identifier suffix.
+#
+# When using variants, the mod's main identifier (in this case, "MyCoolMod")
+# will become the `provides` field of the variants, and the `name` will be added
+# to the main `name` field.
+#
+# In this example, this variant specification will generate two mods:
+# - "My Cool Mod for KSP! (4K Textures)" with identifier "MyCoolMod-4k"
+# - "My Cool Mod for KSP! (8K Textures)" with identifier "MyCoolMod-8k"
+# Both of these will _provide_ `MyCoolMod`.
+#
+# For examples of this working in practice, see the configs for the Sol texture
+# packs, as they all use this feature.
+[[variants]]
+identifier = "4k"
+name = "4K Textures"
+asset_match = "MyCoolMod-4K.zip"
+
+[[variants]]
+identifier = "8k"
+name = "8K Textures"
+asset_match = "MyCoolMod-8K.zip"
