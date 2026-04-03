@@ -1,4 +1,4 @@
-use serde::Serialize;
+use serde::{Serialize, ser};
 
 use crate::config;
 
@@ -94,11 +94,48 @@ impl CkanResources {
 #[derive(Clone, Serialize)]
 pub struct CkanDependency {
     pub name: String,
+    #[serde(flatten, skip_serializing_if = "Option::is_none")]
+    pub version_spec: Option<CkanDependencyVersionSpecifier>,
+}
+
+#[derive(Clone)]
+pub enum CkanDependencyVersionSpecifier {
+    Exact(String),
+    MinMax {
+        min_version: Option<String>,
+        max_version: Option<String>,
+    },
+}
+
+impl Serialize for CkanDependencyVersionSpecifier {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        use serde::ser::SerializeMap;
+        match self {
+            Self::Exact(v) => {
+                let mut map = serializer.serialize_map(Some(1))?;
+                map.serialize_entry("version", v)?;
+                map.end()
+            }
+            Self::MinMax { min_version, max_version } => {
+                let len = min_version.is_some() as usize + max_version.is_some() as usize;
+                let mut map = serializer.serialize_map(Some(len))?;
+                if let Some(v) = min_version {
+                    map.serialize_entry("min_version", v)?;
+                }
+                if let Some(v) = max_version {
+                    map.serialize_entry("max_version", v)?;
+                }
+                map.end()
+            }
+        }
+    }
 }
 
 impl From<(String, String)> for CkanDependency {
     fn from((identifier, _version_req): (String, String)) -> Self {
-        Self { name: identifier }
+        // TODO: This parsing is pretty naive and drops version requirements currently.
+        // We need to properly support them.
+        Self { name: identifier, version_spec: None }
     }
 }
 

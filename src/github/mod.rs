@@ -2,12 +2,14 @@ use octorust::{Client, auth::Credentials};
 
 const GITHUB_USER_AGENT: &str = "rkan-ckan";
 
+pub mod download;
+
 #[derive(Clone)]
 pub struct GithubClient(Client);
 
 impl GithubClient {
-    pub fn new(token: String) -> Self {
-        let creds = Credentials::Token(token);
+    pub fn new(token: Option<String>) -> Self {
+        let creds = token.map(|val| Credentials::Token(val));
         let client = Client::new(GITHUB_USER_AGENT, creds).unwrap();
         Self(client)
     }

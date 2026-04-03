@@ -6,6 +6,7 @@ use tracing_indicatif::IndicatifLayer;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 
+use crate::config::find_all_configs;
 use crate::github::GithubClient;
 
 mod ckan;
@@ -71,7 +72,7 @@ async fn main() {
 
     let app = App::parse();
     let configs = find_all_configs(&app.configs_dir);
-    let gh = GithubClient::new(app.github_token.unwrap());
+    let gh = GithubClient::new(app.github_token);
 
     match app.cmd {
         Cmds::Generate { filter } => {
@@ -89,7 +90,7 @@ async fn main() {
                     let out_dir = app.out_dir.clone();
                     let gh = gh.clone();
                     async move {
-                        ckan::generate(ckan::GenerateOptions {
+                        ckan::generator::generate(ckan::generator::GenerateOptions {
                             mod_config,
                             out_dir,
                             gh,
@@ -108,25 +109,4 @@ async fn main() {
                 .await;
         }
     }
-}
-
-fn find_all_configs(configs_dir: &PathBuf) -> Vec<config::Mod> {
-    let mut configs = Vec::new();
-
-    for entry in std::fs::read_dir(configs_dir).unwrap() {
-        let entry = entry.unwrap();
-        let path = entry.path();
-        tracing::debug!(?path, "Checking entry: {:?}", entry.file_name());
-
-        if path.is_dir() {
-            configs.extend(find_all_configs(&path));
-        } else if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("toml") {
-            let config_data = std::fs::read_to_string(&path).unwrap();
-            let config: config::Mod = toml::from_str(&config_data).unwrap();
-            tracing::debug!(?path, "Loaded mod config: {:?}", config.identifier);
-            configs.push(config);
-        }
-    }
-
-    configs
 }

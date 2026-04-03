@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, path::{Path}};
 
 use serde::{Deserialize, Serialize};
 
@@ -15,6 +15,7 @@ pub struct Mod {
     pub asset_match: Option<String>,
     pub resources: ModResources,
 
+    #[serde(default)]
     pub install: Vec<ModInstallDirective>,
 
     #[serde(default)]
@@ -52,4 +53,25 @@ pub struct ModResources {
 pub struct ModInstallDirective {
     pub file: String,
     pub install_to: String,
+}
+
+pub fn find_all_configs(configs_dir: &Path) -> Vec<Mod> {
+    let mut configs = Vec::new();
+
+    for entry in std::fs::read_dir(configs_dir).unwrap() {
+        let entry = entry.unwrap();
+        let path = entry.path();
+        tracing::debug!(?path, "Checking entry: {:?}", entry.file_name());
+
+        if path.is_dir() {
+            configs.extend(find_all_configs(&path));
+        } else if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("toml") {
+            let config_data = std::fs::read_to_string(&path).unwrap();
+            let config: Mod = toml::from_str(&config_data).unwrap();
+            tracing::debug!(?path, "Loaded mod config: {:?}", config.identifier);
+            configs.push(config);
+        }
+    }
+
+    configs
 }
