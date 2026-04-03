@@ -1,17 +1,18 @@
-use octorust::{Client, auth::Credentials};
+use octorust::auth::Credentials;
 
 const GITHUB_USER_AGENT: &str = "rkan-ckan";
 
 pub mod download;
 
 #[derive(Clone)]
-pub struct GithubClient(Client);
+pub struct GithubClient(octorust::Client, reqwest::Client);
 
 impl GithubClient {
-    pub fn new(token: Option<String>) -> Self {
+    pub fn new(token: Option<String>) -> Result<Self, Box<dyn std::error::Error>> {
+        let reqwest_client = reqwest::Client::new();
         let creds = token.map(|val| Credentials::Token(val));
-        let client = Client::new(GITHUB_USER_AGENT, creds).unwrap();
-        Self(client)
+        let client = octorust::Client::new(GITHUB_USER_AGENT, creds)?;
+        Ok(Self(client, reqwest_client))
     }
 
     pub async fn get_repo_info(

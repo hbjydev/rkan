@@ -1,4 +1,4 @@
-use serde::{Serialize, ser};
+use serde::Serialize;
 
 use crate::config;
 

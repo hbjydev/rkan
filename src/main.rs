@@ -58,34 +58,17 @@ enum Cmds {
 }
 
 #[tokio::main]
-async fn main() {
-    let indicatif_layer = IndicatifLayer::new();
-    tracing_subscriber::registry()
-        .with(tracing_subscriber::fmt::layer().with_writer(indicatif_layer.get_stderr_writer()))
-        .with(
-            tracing_subscriber::EnvFilter::builder()
-                .with_default_directive(tracing::Level::INFO.into())
-                .from_env_lossy(),
-        )
-        .with(indicatif_layer)
-        .init();
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    init_tracing();
 
     let app = App::parse();
-    let configs = find_all_configs(&app.configs_dir);
-    let gh = GithubClient::new(app.github_token);
-
+    let gh = GithubClient::new(app.github_token)?;
+    
     match app.cmd {
         Cmds::Generate { filter } => {
-            let filtered = if filter.is_empty() {
-                configs
-            } else {
-                configs
-                    .into_iter()
-                    .filter(|c| filter.contains(&c.identifier))
-                    .collect()
-            };
+            let configs = find_all_configs(&app.configs_dir, filter);
 
-            futures_util::stream::iter(filtered)
+            let errors = futures_util::stream::iter(configs)
                 .map(|mod_config| {
                     let out_dir = app.out_dir.clone();
                     let gh = gh.clone();
@@ -101,12 +84,33 @@ async fn main() {
                             tracing::error!(error = ?e, "Failed to generate CKAN file");
                             e
                         })
-                        .ok()
                     }
                 })
                 .buffer_unordered(app.jobs)
-                .collect::<Vec<_>>()
+                .collect::<Vec<Result<(), Box<dyn std::error::Error>>>>()
                 .await;
+
+            let error_count = errors.iter().filter(|r| r.is_err()).count();
+            if error_count > 0 {
+                tracing::error!("Generation completed with {} errors", error_count);
+            } else {
+                tracing::info!("Generation completed successfully");
+            }
+
+            Ok(())
         }
     }
+}
+
+fn init_tracing() {
+    let indicatif_layer = IndicatifLayer::new();
+    tracing_subscriber::registry()
+        .with(tracing_subscriber::fmt::layer().with_writer(indicatif_layer.get_stderr_writer()))
+        .with(
+            tracing_subscriber::EnvFilter::builder()
+                .with_default_directive(tracing::Level::INFO.into())
+                .from_env_lossy(),
+        )
+        .with(indicatif_layer)
+        .init();
 }

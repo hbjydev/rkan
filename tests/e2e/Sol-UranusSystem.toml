@@ -22,12 +22,12 @@ identifier = "4k"
 name = "4k"
 asset_match = "Sol_Uranus-System_4k.zip"
 
-[[variants]]
-identifier = "8k"
-name = "8k"
-asset_match = "Sol_Uranus-System_8k.zip"
+# [[variants]]
+# identifier = "8k"
+# name = "8k"
+# asset_match = "Sol_Uranus-System_8k.zip"
 
-[[variants]]
-identifier = "16k"
-name = "16k"
-asset_match = "Sol_Uranus-System_16k.zip"
+# [[variants]]
+# identifier = "16k"
+# name = "16k"
+# asset_match = "Sol_Uranus-System_16k.zip"

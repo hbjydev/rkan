@@ -1,6 +1,9 @@
-use tracing::Instrument;
+use std::env;
 
-use crate::{config::Mod, github::{GithubClient, download::{DownloadedAsset, download_and_hash}}};
+use futures_util::{StreamExt, stream::FuturesUnordered};
+use tracing::instrument;
+
+use crate::{config::Mod, github::{GithubClient, download::DownloadedAsset}};
 use super::types::{
     CkanFile,
     CkanDependency,
@@ -29,8 +32,10 @@ struct ReleaseContext {
     depends: Vec<CkanDependency>,
     recommends: Vec<CkanDependency>,
     install: Vec<CkanInstallDirective>,
+    ksp_version: String,
     publish_date: chrono::DateTime<chrono::Utc>,
     base_id: String,
+    github: GithubClient,
 }
 
 pub struct GenerateOptions {
@@ -40,7 +45,7 @@ pub struct GenerateOptions {
     pub version: Option<String>,
 }
 
-#[tracing::instrument(
+#[instrument(
     name = "generate_ckan",
     skip(options),
     fields(mod_id = %options.mod_config.identifier, version = %options.version.clone().unwrap_or("latest".to_string()))
@@ -169,20 +174,29 @@ pub async fn generate(options: GenerateOptions) -> Result<(), Box<dyn std::error
         depends: base_depends,
         recommends: base_recommends,
         install: base_install,
+        ksp_version: mod_config.ksp_version.unwrap_or("1.12".to_string()),
         publish_date,
         base_id,
+        github: gh.clone(),
     };
 
-    for task in tasks {
-        let span = tracing::info_span!("file", identifier = %task.identifier);
-        generate_file(task, &release_info.assets, &out_dir, &ctx)
-            .instrument(span)
-            .await?;
-    }
+    let results: Vec<_> = tasks
+        .into_iter()
+        .map(|task| generate_file(task, &release_info.assets, &out_dir, &ctx))
+        .collect::<FuturesUnordered<_>>()
+        .collect()
+        .await;
+
+    for result in results { result?; }
 
     Ok(())
 }
 
+#[instrument(
+    name = "generate_ckan_file",
+    skip(task, assets, out_dir, ctx),
+    fields(file_id = %task.identifier)
+)]
 async fn generate_file(
     task: FileTask,
     assets: &[octorust::types::ReleaseAsset],
@@ -202,12 +216,16 @@ async fn generate_file(
     };
 
     let workdir = std::env::temp_dir().join(env!("CARGO_PKG_NAME"));
+    if !workdir.exists() {
+        std::fs::create_dir_all(&workdir)?;
+    }
+
     let DownloadedAsset {
         size: download_size,
         hash_sha256: download_hash_sha256,
         hash_sha1: download_hash_sha1,
         temp_file
-    } = download_and_hash(asset.clone(), Some(&workdir)).await?;
+    } = ctx.github.download_and_hash(asset.clone(), Some(&workdir)).await?;
 
     let install_size = check_install_size(temp_file.path())?;
     tracing::debug!("Install size: {}", install_size);
@@ -227,7 +245,7 @@ async fn generate_file(
         conflicts: task.conflicts,
         recommends: ctx.recommends.clone(),
         install: ctx.install.clone(),
-        ksp_version: "1.12".to_string(),
+        ksp_version: ctx.ksp_version.to_string(),
         download: asset.browser_download_url.clone(),
         download_size,
         download_hash: CkanDownloadHash {
@@ -240,7 +258,7 @@ async fn generate_file(
             .updated_at
             .unwrap_or(ctx.publish_date)
             .to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
-        x_generated_by: "rkan".to_string(),
+        x_generated_by: concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION")).to_string(),
         spec_version: 1,
     };
 
