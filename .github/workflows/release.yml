@@ -19,11 +19,11 @@ jobs:
             target: x86_64-unknown-linux-gnu
             artifact: rkan-linux-x86_64
             binary: rkan
-          - os: macos-26
+          - os: macos-26-intel
             target: x86_64-apple-darwin
             artifact: rkan-macos-x86_64
             binary: rkan
-          - os: macos-26-arm64
+          - os: macos-26
             target: aarch64-apple-darwin
             artifact: rkan-macos-aarch64
             binary: rkan
