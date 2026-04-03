@@ -28,3 +28,6 @@ hex = "0.4"
 regex = "1"
 tracing-indicatif = "0.3"
 indicatif = "0.17"
+
+[package.metadata.binstall]
+pkg-fmt = "bin"
