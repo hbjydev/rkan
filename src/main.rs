@@ -8,8 +8,8 @@ use tracing_subscriber::util::SubscriberInitExt;
 
 use crate::github::GithubClient;
 
-mod config;
 mod ckan;
+mod config;
 mod github;
 
 #[derive(Parser)]
@@ -24,7 +24,13 @@ struct App {
     cmd: Cmds,
 
     /// GitHub token to use for API requests
-    #[clap(short, long, global = true, env = "GITHUB_TOKEN", hide_env_values = true)]
+    #[clap(
+        short,
+        long,
+        global = true,
+        env = "GITHUB_TOKEN",
+        hide_env_values = true
+    )]
     github_token: Option<String>,
 
     /// Where to find the mod configuration files
@@ -54,14 +60,11 @@ enum Cmds {
 async fn main() {
     let indicatif_layer = IndicatifLayer::new();
     tracing_subscriber::registry()
-        .with(
-            tracing_subscriber::fmt::layer()
-                .with_writer(indicatif_layer.get_stderr_writer())
-        )
+        .with(tracing_subscriber::fmt::layer().with_writer(indicatif_layer.get_stderr_writer()))
         .with(
             tracing_subscriber::EnvFilter::builder()
                 .with_default_directive(tracing::Level::INFO.into())
-                .from_env_lossy()
+                .from_env_lossy(),
         )
         .with(indicatif_layer)
         .init();
@@ -75,7 +78,10 @@ async fn main() {
             let filtered = if filter.is_empty() {
                 configs
             } else {
-                configs.into_iter().filter(|c| filter.contains(&c.identifier)).collect()
+                configs
+                    .into_iter()
+                    .filter(|c| filter.contains(&c.identifier))
+                    .collect()
             };
 
             futures_util::stream::iter(filtered)

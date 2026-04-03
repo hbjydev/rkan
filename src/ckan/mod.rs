@@ -26,25 +26,42 @@ pub struct GenerateOptions {
     fields(mod_id = %options.mod_config.identifier, version = %options.version.clone().unwrap_or("latest".to_string()))
 )]
 pub async fn generate(options: GenerateOptions) -> Result<(), Box<dyn std::error::Error>> {
-    let GenerateOptions { mod_config, out_dir, gh, version } = options;
+    let GenerateOptions {
+        mod_config,
+        out_dir,
+        gh,
+        version,
+    } = options;
     tracing::info!("Generating CKAN file");
 
-    let (owner, repo) = mod_config.repo.split_once('/').ok_or("Invalid repo format, expected owner/repo")?;
+    let (owner, repo) = mod_config
+        .repo
+        .split_once('/')
+        .ok_or("Invalid repo format, expected owner/repo")?;
 
     let description = if let Some(abstract_) = mod_config.abstract_ {
         abstract_
     } else {
-        tracing::debug!("Fetching repo information from GitHub for {}/{}", owner, repo);
+        tracing::debug!(
+            "Fetching repo information from GitHub for {}/{}",
+            owner,
+            repo
+        );
         gh.get_repo_info(owner, repo).await?.description
     };
 
-    tracing::debug!("Fetching release information from GitHub for {}/{}@{}", owner, repo, version.clone().unwrap_or("latest".to_string()));
+    tracing::debug!(
+        "Fetching release information from GitHub for {}/{}@{}",
+        owner,
+        repo,
+        version.clone().unwrap_or("latest".to_string())
+    );
     let release_info = if let Some(ver) = version {
         gh.get_release_by_tag(owner, repo, &ver).await?
     } else {
         gh.get_latest_release(owner, repo).await?
     };
-    
+
     let release_status = if release_info.prerelease {
         CkanReleaseStatus::Testing
     } else {
@@ -59,13 +76,33 @@ pub async fn generate(options: GenerateOptions) -> Result<(), Box<dyn std::error
         }
     };
 
-    tracing::debug!("Fetched release information: tag_name = {}, published_at = {}", version, publish_date);
+    tracing::debug!(
+        "Fetched release information: tag_name = {}, published_at = {}",
+        version,
+        publish_date
+    );
 
     let base_id = mod_config.identifier.clone();
-    let base_depends: Vec<CkanDependency> = mod_config.dependencies.into_iter().map(CkanDependency::from).collect();
-    let base_conflicts: Vec<CkanDependency> = mod_config.conflicts.into_iter().map(CkanDependency::from).collect();
-    let base_recommends: Vec<CkanDependency> = mod_config.recommends.into_iter().map(CkanDependency::from).collect();
-    let base_install: Vec<CkanInstallDirective> = mod_config.install.into_iter().map(CkanInstallDirective::from).collect();
+    let base_depends: Vec<CkanDependency> = mod_config
+        .dependencies
+        .into_iter()
+        .map(CkanDependency::from)
+        .collect();
+    let base_conflicts: Vec<CkanDependency> = mod_config
+        .conflicts
+        .into_iter()
+        .map(CkanDependency::from)
+        .collect();
+    let base_recommends: Vec<CkanDependency> = mod_config
+        .recommends
+        .into_iter()
+        .map(CkanDependency::from)
+        .collect();
+    let base_install: Vec<CkanInstallDirective> = mod_config
+        .install
+        .into_iter()
+        .map(CkanInstallDirective::from)
+        .collect();
     let base_resources = CkanResources::from_config(mod_config.resources, &mod_config.repo);
 
     let tasks: Vec<FileTask> = if mod_config.variants.is_empty() {
@@ -77,17 +114,27 @@ pub async fn generate(options: GenerateOptions) -> Result<(), Box<dyn std::error
             conflicts: base_conflicts.clone(),
         }]
     } else {
-        mod_config.variants.iter().map(|v| FileTask {
-            identifier: format!("{}-{}", base_id, v.identifier),
-            name: format!("{} ({})", mod_config.name, v.name),
-            asset_pattern: Some(v.asset_match.clone()),
-            provides: std::iter::once(base_id.clone()).chain(mod_config.provides.iter().cloned()).collect(),
-            conflicts: mod_config.variants.iter()
-                .filter(|other| other.identifier != v.identifier)
-                .map(|other| CkanDependency { name: format!("{}-{}", base_id, other.identifier) })
-                .chain(base_conflicts.iter().cloned())
-                .collect(),
-        }).collect()
+        mod_config
+            .variants
+            .iter()
+            .map(|v| FileTask {
+                identifier: format!("{}-{}", base_id, v.identifier),
+                name: format!("{} ({})", mod_config.name, v.name),
+                asset_pattern: Some(v.asset_match.clone()),
+                provides: std::iter::once(base_id.clone())
+                    .chain(mod_config.provides.iter().cloned())
+                    .collect(),
+                conflicts: mod_config
+                    .variants
+                    .iter()
+                    .filter(|other| other.identifier != v.identifier)
+                    .map(|other| CkanDependency {
+                        name: format!("{}-{}", base_id, other.identifier),
+                    })
+                    .chain(base_conflicts.iter().cloned())
+                    .collect(),
+            })
+            .collect()
     };
 
     for task in tasks {
@@ -108,7 +155,9 @@ pub async fn generate(options: GenerateOptions) -> Result<(), Box<dyn std::error
             publish_date,
             &out_dir,
             &base_id,
-        ).instrument(span).await?;
+        )
+        .instrument(span)
+        .await?;
     }
 
     Ok(())
@@ -133,16 +182,25 @@ async fn generate_file(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let asset = if let Some(pattern) = &task.asset_pattern {
         let re = regex::Regex::new(pattern)?;
-        assets.iter()
+        assets
+            .iter()
             .find(|a| re.is_match(&a.name))
             .ok_or(format!("No asset matching '{}' found in release", pattern))?
     } else {
-        assets.first().ok_or("Release does not have any assets".to_string())?
+        assets
+            .first()
+            .ok_or("Release does not have any assets".to_string())?
     };
 
     tracing::info!("Downloading asset and calculating hashes");
-    let (download_size, download_hash_sha256, download_hash_sha1, temp_file) = download_and_hash(&asset.browser_download_url).await?;
-    tracing::debug!("Downloaded asset: size = {}, sha256 = {}, sha1 = {}", download_size, download_hash_sha256, download_hash_sha1);
+    let (download_size, download_hash_sha256, download_hash_sha1, temp_file) =
+        download_and_hash(&asset.browser_download_url).await?;
+    tracing::debug!(
+        "Downloaded asset: size = {}, sha256 = {}, sha1 = {}",
+        download_size,
+        download_hash_sha256,
+        download_hash_sha1
+    );
 
     let install_size = check_install_size(temp_file.path())?;
     tracing::debug!("Install size: {}", install_size);
@@ -165,23 +223,40 @@ async fn generate_file(
         ksp_version: "1.12".to_string(),
         download: asset.browser_download_url.clone(),
         download_size,
-        download_hash: CkanDownloadHash { sha256: download_hash_sha256, sha1: download_hash_sha1 },
+        download_hash: CkanDownloadHash {
+            sha256: download_hash_sha256,
+            sha1: download_hash_sha1,
+        },
         download_content_type: "application/zip".to_string(),
         install_size,
-        release_date: asset.updated_at.unwrap_or(publish_date).to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
+        release_date: asset
+            .updated_at
+            .unwrap_or(publish_date)
+            .to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
         x_generated_by: "rkan".to_string(),
         spec_version: 1,
     };
 
     let json = serde_json::to_string_pretty(&ckan_file)?;
     std::fs::create_dir_all(format!("{}/{}", out_dir.display(), base_id))?;
-    std::fs::write(format!("{}/{}/{}-{}.ckan", out_dir.display(), base_id, task.identifier, version), json)?;
+    std::fs::write(
+        format!(
+            "{}/{}/{}-{}.ckan",
+            out_dir.display(),
+            base_id,
+            task.identifier,
+            version
+        ),
+        json,
+    )?;
     tracing::info!("Generated CKAN file");
 
     Ok(())
 }
 
-async fn download_and_hash(url: &str) -> Result<(u64, String, String, tempfile::NamedTempFile), Box<dyn std::error::Error>> {
+async fn download_and_hash(
+    url: &str,
+) -> Result<(u64, String, String, tempfile::NamedTempFile), Box<dyn std::error::Error>> {
     use futures_util::StreamExt;
     use sha2::Digest;
     use std::io::Write;

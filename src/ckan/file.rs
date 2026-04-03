@@ -54,10 +54,12 @@ pub struct CkanResources {
 impl CkanResources {
     pub fn from_config(resources: config::ModResources, repo: &str) -> Self {
         fn resolve(url: Option<String>, repo: &str) -> Option<String> {
-            url.map(|u| if u.starts_with('/') {
-                format!("https://github.com/{}{}", repo, u)
-            } else {
-                u
+            url.map(|u| {
+                if u.starts_with('/') {
+                    format!("https://github.com/{}{}", repo, u)
+                } else {
+                    u
+                }
             })
         }
         Self {
