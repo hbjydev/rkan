@@ -38,7 +38,7 @@ struct App {
     configs_dir: PathBuf,
 
     /// Where to output the generated CKAN files
-    #[clap(short, long, global = true, default_value = "../ckan")]
+    #[clap(short, long, global = true, default_value = "./ckan")]
     out_dir: PathBuf,
 
     /// Number of mods to process in parallel
