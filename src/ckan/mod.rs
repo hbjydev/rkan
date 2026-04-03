@@ -13,6 +13,21 @@ struct FileTask {
     conflicts: Vec<CkanDependency>,
 }
 
+struct ReleaseContext {
+    description: String,
+    authors: Vec<String>,
+    version: String,
+    tags: Vec<String>,
+    license: String,
+    release_status: CkanReleaseStatus,
+    resources: CkanResources,
+    depends: Vec<CkanDependency>,
+    recommends: Vec<CkanDependency>,
+    install: Vec<CkanInstallDirective>,
+    publish_date: chrono::DateTime<chrono::Utc>,
+    base_id: String,
+}
+
 pub struct GenerateOptions {
     pub mod_config: Mod,
     pub out_dir: std::path::PathBuf,
@@ -137,27 +152,26 @@ pub async fn generate(options: GenerateOptions) -> Result<(), Box<dyn std::error
             .collect()
     };
 
+    let ctx = ReleaseContext {
+        description,
+        authors: mod_config.authors,
+        version,
+        tags: mod_config.tags,
+        license: mod_config.license,
+        release_status,
+        resources: base_resources,
+        depends: base_depends,
+        recommends: base_recommends,
+        install: base_install,
+        publish_date,
+        base_id,
+    };
+
     for task in tasks {
         let span = tracing::info_span!("file", identifier = %task.identifier);
-        generate_file(
-            task,
-            &release_info.assets,
-            &description,
-            &mod_config.authors,
-            &version,
-            &mod_config.tags,
-            &mod_config.license,
-            release_status.clone(),
-            base_resources.clone(),
-            base_depends.clone(),
-            base_recommends.clone(),
-            base_install.clone(),
-            publish_date,
-            &out_dir,
-            &base_id,
-        )
-        .instrument(span)
-        .await?;
+        generate_file(task, &release_info.assets, &out_dir, &ctx)
+            .instrument(span)
+            .await?;
     }
 
     Ok(())
@@ -166,19 +180,8 @@ pub async fn generate(options: GenerateOptions) -> Result<(), Box<dyn std::error
 async fn generate_file(
     task: FileTask,
     assets: &[octorust::types::ReleaseAsset],
-    description: &str,
-    authors: &[String],
-    version: &str,
-    tags: &[String],
-    license: &str,
-    release_status: CkanReleaseStatus,
-    resources: CkanResources,
-    depends: Vec<CkanDependency>,
-    recommends: Vec<CkanDependency>,
-    install: Vec<CkanInstallDirective>,
-    publish_date: chrono::DateTime<chrono::Utc>,
     out_dir: &std::path::Path,
-    base_id: &str,
+    ctx: &ReleaseContext,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let asset = if let Some(pattern) = &task.asset_pattern {
         let re = regex::Regex::new(pattern)?;
@@ -208,18 +211,18 @@ async fn generate_file(
     let ckan_file = CkanFile {
         identifier: task.identifier.clone(),
         name: task.name,
-        abstract_: description.to_string(),
-        author: authors.to_vec(),
-        version: version.to_string(),
-        tags: tags.to_vec(),
-        license: license.to_string(),
-        release_status,
-        resources,
+        abstract_: ctx.description.clone(),
+        author: ctx.authors.clone(),
+        version: ctx.version.clone(),
+        tags: ctx.tags.clone(),
+        license: ctx.license.clone(),
+        release_status: ctx.release_status.clone(),
+        resources: ctx.resources.clone(),
         provides: task.provides,
-        depends,
+        depends: ctx.depends.clone(),
         conflicts: task.conflicts,
-        recommends,
-        install,
+        recommends: ctx.recommends.clone(),
+        install: ctx.install.clone(),
         ksp_version: "1.12".to_string(),
         download: asset.browser_download_url.clone(),
         download_size,
@@ -231,21 +234,21 @@ async fn generate_file(
         install_size,
         release_date: asset
             .updated_at
-            .unwrap_or(publish_date)
+            .unwrap_or(ctx.publish_date)
             .to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
         x_generated_by: "rkan".to_string(),
         spec_version: 1,
     };
 
     let json = serde_json::to_string_pretty(&ckan_file)?;
-    std::fs::create_dir_all(format!("{}/{}", out_dir.display(), base_id))?;
+    std::fs::create_dir_all(format!("{}/{}", out_dir.display(), ctx.base_id))?;
     std::fs::write(
         format!(
             "{}/{}/{}-{}.ckan",
             out_dir.display(),
-            base_id,
+            ctx.base_id,
             task.identifier,
-            version
+            ctx.version
         ),
         json,
     )?;

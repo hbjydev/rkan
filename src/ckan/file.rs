@@ -40,6 +40,7 @@ pub struct CkanFile {
 pub enum CkanReleaseStatus {
     Stable,
     Testing,
+    #[allow(dead_code)]
     Development,
 }
 
