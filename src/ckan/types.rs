@@ -116,7 +116,10 @@ impl Serialize for CkanDependencyVersionSpecifier {
                 map.serialize_entry("version", v)?;
                 map.end()
             }
-            Self::MinMax { min_version, max_version } => {
+            Self::MinMax {
+                min_version,
+                max_version,
+            } => {
                 let len = min_version.is_some() as usize + max_version.is_some() as usize;
                 let mut map = serializer.serialize_map(Some(len))?;
                 if let Some(v) = min_version {
@@ -135,7 +138,10 @@ impl From<(String, String)> for CkanDependency {
     fn from((identifier, _version_req): (String, String)) -> Self {
         // TODO: This parsing is pretty naive and drops version requirements currently.
         // We need to properly support them.
-        Self { name: identifier, version_spec: None }
+        Self {
+            name: identifier,
+            version_spec: None,
+        }
     }
 }
 

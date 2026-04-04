@@ -3,14 +3,13 @@ use std::env;
 use futures_util::{StreamExt, stream::FuturesUnordered};
 use tracing::instrument;
 
-use crate::{config::Mod, github::{GithubClient, DownloadedAsset}};
 use super::types::{
-    CkanFile,
-    CkanDependency,
-    CkanDownloadHash,
-    CkanInstallDirective,
-    CkanReleaseStatus,
+    CkanDependency, CkanDownloadHash, CkanFile, CkanInstallDirective, CkanReleaseStatus,
     CkanResources,
+};
+use crate::{
+    config::Mod,
+    github::{DownloadedAsset, GithubClient},
 };
 
 struct FileTask {
@@ -181,7 +180,9 @@ pub async fn generate(options: GenerateOptions<'_>) -> Result<(), Box<dyn std::e
         .collect()
         .await;
 
-    for result in results { result?; }
+    for result in results {
+        result?;
+    }
 
     Ok(())
 }
@@ -219,7 +220,7 @@ async fn generate_file(
         size: download_size,
         hash_sha256: download_hash_sha256,
         hash_sha1: download_hash_sha1,
-        temp_file
+        temp_file,
     } = gh.download_and_hash(asset.clone(), Some(&workdir)).await?;
 
     let install_size = check_install_size(temp_file.path())?;

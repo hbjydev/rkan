@@ -73,27 +73,24 @@ async fn run_app() -> Result<(), Box<dyn std::error::Error>> {
 
     match app.cmd {
         Cmds::Generate { filter } => {
-            let configs = find_all_configs(&app.configs_dir, &filter)
-                .map_err(|e| {
-                    let msg = format!("Failed to load mod configs in {:?}: {}", app.configs_dir, e);
-                    std::io::Error::new(std::io::ErrorKind::Other, msg)
-                })?;
+            let configs = find_all_configs(&app.configs_dir, &filter).map_err(|e| {
+                let msg = format!("Failed to load mod configs in {:?}: {}", app.configs_dir, e);
+                std::io::Error::new(std::io::ErrorKind::Other, msg)
+            })?;
 
             let errors = futures_util::stream::iter(configs)
-                .map(|mod_config| {
-                    async {
-                        ckan::generator::generate(ckan::generator::GenerateOptions {
-                            mod_config,
-                            out_dir: &app.out_dir,
-                            gh: &gh,
-                            version: None,
-                        })
-                        .await
-                        .map_err(|e| {
-                            tracing::error!(error = ?e, "Failed to generate CKAN file");
-                            e
-                        })
-                    }
+                .map(|mod_config| async {
+                    ckan::generator::generate(ckan::generator::GenerateOptions {
+                        mod_config,
+                        out_dir: &app.out_dir,
+                        gh: &gh,
+                        version: None,
+                    })
+                    .await
+                    .map_err(|e| {
+                        tracing::error!(error = ?e, "Failed to generate CKAN file");
+                        e
+                    })
                 })
                 .buffer_unordered(app.jobs)
                 .collect::<Vec<Result<(), Box<dyn std::error::Error>>>>()
@@ -104,7 +101,8 @@ async fn run_app() -> Result<(), Box<dyn std::error::Error>> {
                 return Err(std::io::Error::new(
                     std::io::ErrorKind::Other,
                     format!("Generation completed with {} errors", error_count),
-                ).into());
+                )
+                .into());
             } else {
                 tracing::info!("Generation completed successfully");
             }

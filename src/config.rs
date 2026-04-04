@@ -1,4 +1,4 @@
-use std::{collections::HashMap, path::{Path}};
+use std::{collections::HashMap, path::Path};
 
 use serde::{Deserialize, Serialize};
 
@@ -62,7 +62,10 @@ pub struct ModInstallDirective {
     pub install_to: String,
 }
 
-pub fn find_all_configs(configs_dir: &Path, filter: &[String]) -> Result<Vec<Mod>, Box<dyn std::error::Error>> {
+pub fn find_all_configs(
+    configs_dir: &Path,
+    filter: &[String],
+) -> Result<Vec<Mod>, Box<dyn std::error::Error>> {
     let mut configs = Vec::new();
 
     for entry in std::fs::read_dir(configs_dir)? {
@@ -79,7 +82,11 @@ pub fn find_all_configs(configs_dir: &Path, filter: &[String]) -> Result<Vec<Mod
             if filter.is_empty() || filter.contains(&config.identifier) {
                 configs.push(config);
             } else {
-                tracing::debug!(?path, "Skipping mod config due to filter: {:?}", config.identifier);
+                tracing::debug!(
+                    ?path,
+                    "Skipping mod config due to filter: {:?}",
+                    config.identifier
+                );
             }
         }
     }
