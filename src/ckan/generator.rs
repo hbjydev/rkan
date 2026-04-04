@@ -3,7 +3,7 @@ use std::env;
 use futures_util::{StreamExt, stream::FuturesUnordered};
 use tracing::instrument;
 
-use crate::{config::Mod, github::{GithubClient, download::DownloadedAsset}};
+use crate::{config::Mod, github::{GithubClient, DownloadedAsset}};
 use super::types::{
     CkanFile,
     CkanDependency,
@@ -35,13 +35,12 @@ struct ReleaseContext {
     ksp_version: String,
     publish_date: chrono::DateTime<chrono::Utc>,
     base_id: String,
-    github: GithubClient,
 }
 
-pub struct GenerateOptions {
+pub struct GenerateOptions<'a> {
     pub mod_config: Mod,
-    pub out_dir: std::path::PathBuf,
-    pub gh: GithubClient,
+    pub out_dir: &'a std::path::Path,
+    pub gh: &'a GithubClient,
     pub version: Option<String>,
 }
 
@@ -50,7 +49,7 @@ pub struct GenerateOptions {
     skip(options),
     fields(mod_id = %options.mod_config.identifier, version = %options.version.clone().unwrap_or("latest".to_string()))
 )]
-pub async fn generate(options: GenerateOptions) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn generate(options: GenerateOptions<'_>) -> Result<(), Box<dyn std::error::Error>> {
     let GenerateOptions {
         mod_config,
         out_dir,
@@ -67,11 +66,7 @@ pub async fn generate(options: GenerateOptions) -> Result<(), Box<dyn std::error
     let description = if let Some(abstract_) = mod_config.abstract_ {
         abstract_
     } else {
-        tracing::debug!(
-            "Fetching repo information from GitHub for {}/{}",
-            owner,
-            repo
-        );
+        tracing::debug!("No description set, pulling repo metadata from GitHub");
         gh.get_repo_info(owner, repo).await?.description
     };
 
@@ -174,15 +169,14 @@ pub async fn generate(options: GenerateOptions) -> Result<(), Box<dyn std::error
         depends: base_depends,
         recommends: base_recommends,
         install: base_install,
-        ksp_version: mod_config.ksp_version.unwrap_or("1.12".to_string()),
+        ksp_version: mod_config.ksp_version,
         publish_date,
         base_id,
-        github: gh.clone(),
     };
 
     let results: Vec<_> = tasks
         .into_iter()
-        .map(|task| generate_file(task, &release_info.assets, &out_dir, &ctx))
+        .map(|task| generate_file(task, &release_info.assets, &out_dir, &ctx, &gh))
         .collect::<FuturesUnordered<_>>()
         .collect()
         .await;
@@ -194,7 +188,7 @@ pub async fn generate(options: GenerateOptions) -> Result<(), Box<dyn std::error
 
 #[instrument(
     name = "generate_ckan_file",
-    skip(task, assets, out_dir, ctx),
+    skip(task, assets, out_dir, ctx, gh),
     fields(file_id = %task.identifier)
 )]
 async fn generate_file(
@@ -202,6 +196,7 @@ async fn generate_file(
     assets: &[octorust::types::ReleaseAsset],
     out_dir: &std::path::Path,
     ctx: &ReleaseContext,
+    gh: &GithubClient,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let asset = if let Some(pattern) = &task.asset_pattern {
         let re = regex::Regex::new(pattern)?;
@@ -225,7 +220,7 @@ async fn generate_file(
         hash_sha256: download_hash_sha256,
         hash_sha1: download_hash_sha1,
         temp_file
-    } = ctx.github.download_and_hash(asset.clone(), Some(&workdir)).await?;
+    } = gh.download_and_hash(asset.clone(), Some(&workdir)).await?;
 
     let install_size = check_install_size(temp_file.path())?;
     tracing::debug!("Install size: {}", install_size);
@@ -252,6 +247,8 @@ async fn generate_file(
             sha256: download_hash_sha256,
             sha1: download_hash_sha1,
         },
+        // CKAN doesn't know how to process any other content types, so we hardcode it to
+        // application/zip.
         download_content_type: "application/zip".to_string(),
         install_size,
         release_date: asset
@@ -263,17 +260,11 @@ async fn generate_file(
     };
 
     let json = serde_json::to_string_pretty(&ckan_file)?;
-    std::fs::create_dir_all(format!("{}/{}", out_dir.display(), ctx.base_id))?;
-    std::fs::write(
-        format!(
-            "{}/{}/{}-{}.ckan",
-            out_dir.display(),
-            ctx.base_id,
-            task.identifier,
-            ctx.version
-        ),
-        json,
-    )?;
+    let base_out_dir = out_dir.join(&ctx.base_id);
+    let output_path = base_out_dir.join(format!("{}-{}.ckan", task.identifier, ctx.version));
+
+    std::fs::create_dir_all(&base_out_dir)?;
+    std::fs::write(&output_path, json)?;
     tracing::info!("Generated CKAN file");
 
     Ok(())

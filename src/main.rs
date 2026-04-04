@@ -1,4 +1,5 @@
 use std::path::PathBuf;
+use std::process::exit;
 
 use clap::{Parser, Subcommand};
 use futures_util::StreamExt;
@@ -58,25 +59,33 @@ enum Cmds {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() {
     init_tracing();
+    if let Err(e) = run_app().await {
+        tracing::error!("{}", e);
+        exit(1);
+    }
+}
 
+async fn run_app() -> Result<(), Box<dyn std::error::Error>> {
     let app = App::parse();
     let gh = GithubClient::new(app.github_token)?;
-    
+
     match app.cmd {
         Cmds::Generate { filter } => {
-            let configs = find_all_configs(&app.configs_dir, filter);
+            let configs = find_all_configs(&app.configs_dir, &filter)
+                .map_err(|e| {
+                    let msg = format!("Failed to load mod configs in {:?}: {}", app.configs_dir, e);
+                    std::io::Error::new(std::io::ErrorKind::Other, msg)
+                })?;
 
             let errors = futures_util::stream::iter(configs)
                 .map(|mod_config| {
-                    let out_dir = app.out_dir.clone();
-                    let gh = gh.clone();
-                    async move {
+                    async {
                         ckan::generator::generate(ckan::generator::GenerateOptions {
                             mod_config,
-                            out_dir,
-                            gh,
+                            out_dir: &app.out_dir,
+                            gh: &gh,
                             version: None,
                         })
                         .await
@@ -92,7 +101,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             let error_count = errors.iter().filter(|r| r.is_err()).count();
             if error_count > 0 {
-                tracing::error!("Generation completed with {} errors", error_count);
+                return Err(std::io::Error::new(
+                    std::io::ErrorKind::Other,
+                    format!("Generation completed with {} errors", error_count),
+                ).into());
             } else {
                 tracing::info!("Generation completed successfully");
             }

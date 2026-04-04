@@ -16,7 +16,7 @@ pub struct Mod {
     pub resources: ModResources,
 
     #[serde(default = "default_ksp_version")]
-    pub ksp_version: Option<String>,
+    pub ksp_version: String,
 
     #[serde(default)]
     pub install: Vec<ModInstallDirective>,
@@ -37,8 +37,8 @@ pub struct Mod {
     pub variants: Vec<ModVariant>,
 }
 
-fn default_ksp_version() -> Option<String> {
-    Some("1.12".to_string())
+fn default_ksp_version() -> String {
+    "1.12".to_string()
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -62,19 +62,19 @@ pub struct ModInstallDirective {
     pub install_to: String,
 }
 
-pub fn find_all_configs(configs_dir: &Path, filter: Vec<String>) -> Vec<Mod> {
+pub fn find_all_configs(configs_dir: &Path, filter: &[String]) -> Result<Vec<Mod>, Box<dyn std::error::Error>> {
     let mut configs = Vec::new();
 
-    for entry in std::fs::read_dir(configs_dir).unwrap() {
-        let entry = entry.unwrap();
+    for entry in std::fs::read_dir(configs_dir)? {
+        let entry = entry?;
         let path = entry.path();
         tracing::debug!(?path, "Checking entry: {:?}", entry.file_name());
 
         if path.is_dir() {
-            configs.extend(find_all_configs(&path, filter.clone()));
+            configs.extend(find_all_configs(&path, filter)?);
         } else if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("toml") {
-            let config_data = std::fs::read_to_string(&path).unwrap();
-            let config: Mod = toml::from_str(&config_data).unwrap();
+            let config_data = std::fs::read_to_string(&path)?;
+            let config: Mod = toml::from_str(&config_data)?;
             tracing::debug!(?path, "Loaded mod config: {:?}", config.identifier);
             if filter.is_empty() || filter.contains(&config.identifier) {
                 configs.push(config);
@@ -83,6 +83,5 @@ pub fn find_all_configs(configs_dir: &Path, filter: Vec<String>) -> Vec<Mod> {
             }
         }
     }
-
-    configs
+    Ok(configs)
 }
