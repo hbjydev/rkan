@@ -99,6 +99,7 @@ pub struct CkanDependency {
 }
 
 #[derive(Clone)]
+#[allow(dead_code)]
 pub enum CkanDependencyVersionSpecifier {
     Exact(String),
     MinMax {

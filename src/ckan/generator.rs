@@ -175,7 +175,7 @@ pub async fn generate(options: GenerateOptions<'_>) -> Result<(), Box<dyn std::e
 
     let results: Vec<_> = tasks
         .into_iter()
-        .map(|task| generate_file(task, &release_info.assets, &out_dir, &ctx, &gh))
+        .map(|task| generate_file(task, &release_info.assets, out_dir, &ctx, gh))
         .collect::<FuturesUnordered<_>>()
         .collect()
         .await;

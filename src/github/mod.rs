@@ -24,7 +24,7 @@ impl GithubClient {
             .user_agent(GITHUB_USER_AGENT)
             .build()?;
 
-        let creds = token.map(|val| Credentials::Token(val));
+        let creds = token.map(Credentials::Token);
         let client = octorust::Client::new(GITHUB_USER_AGENT, creds)?;
 
         Ok(Self(client, reqwest_client))

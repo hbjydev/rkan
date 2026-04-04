@@ -75,7 +75,7 @@ async fn run_app() -> Result<(), Box<dyn std::error::Error>> {
         Cmds::Generate { filter } => {
             let configs = find_all_configs(&app.configs_dir, &filter).map_err(|e| {
                 let msg = format!("Failed to load mod configs in {:?}: {}", app.configs_dir, e);
-                std::io::Error::new(std::io::ErrorKind::Other, msg)
+                std::io::Error::other(msg)
             })?;
 
             let errors = futures_util::stream::iter(configs)
@@ -98,8 +98,7 @@ async fn run_app() -> Result<(), Box<dyn std::error::Error>> {
 
             let error_count = errors.iter().filter(|r| r.is_err()).count();
             if error_count > 0 {
-                return Err(std::io::Error::new(
-                    std::io::ErrorKind::Other,
+                return Err(std::io::Error::other(
                     format!("Generation completed with {} errors", error_count),
                 )
                 .into());
