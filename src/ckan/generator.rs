@@ -9,7 +9,7 @@ use super::types::{
 };
 use crate::{
     config::Mod,
-    github::{DownloadedAsset, GithubClient},
+    github::{DownloadedAsset, GithubClient}, validation,
 };
 
 struct FileTask {
@@ -259,6 +259,14 @@ async fn generate_file(
         x_generated_by: concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION")).to_string(),
         spec_version: 1,
     };
+
+    validation::run_validators(
+        &validation::default_validators(),
+        &validation::ValidationContext {
+            metadata: &ckan_file,
+            zip_path: temp_file.path().to_string_lossy().to_string(),
+        },
+    )?;
 
     let json = serde_json::to_string_pretty(&ckan_file)?;
     let base_out_dir = out_dir.join(&ctx.base_id);

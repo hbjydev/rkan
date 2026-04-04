@@ -2,7 +2,7 @@ use serde::Serialize;
 
 use crate::config;
 
-#[derive(Serialize)]
+#[derive(Serialize, Default)]
 pub struct CkanFile {
     pub spec_version: u64,
     pub identifier: String,
@@ -35,16 +35,17 @@ pub struct CkanFile {
     pub x_generated_by: String,
 }
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum CkanReleaseStatus {
+    #[default]
     Stable,
     Testing,
     #[allow(dead_code)]
     Development,
 }
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, Default)]
 pub struct CkanResources {
     pub homepage: Option<String>,
     pub repository: Option<String>,
@@ -91,7 +92,7 @@ impl CkanResources {
     }
 }
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, Default)]
 pub struct CkanDependency {
     pub name: String,
     #[serde(flatten, skip_serializing_if = "Option::is_none")]
@@ -146,7 +147,7 @@ impl From<(String, String)> for CkanDependency {
     }
 }
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, Default)]
 pub struct CkanInstallDirective {
     pub file: String,
     pub install_to: String,
@@ -161,7 +162,7 @@ impl From<config::ModInstallDirective> for CkanInstallDirective {
     }
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Default)]
 pub struct CkanDownloadHash {
     pub sha1: String,
     pub sha256: String,

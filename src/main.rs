@@ -13,6 +13,7 @@ use crate::github::GithubClient;
 mod ckan;
 mod config;
 mod github;
+mod validation;
 
 #[derive(Parser)]
 #[command(
