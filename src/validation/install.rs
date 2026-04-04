@@ -10,7 +10,13 @@ impl Validator for InstallValidator {
         zip.extract(temp_dir.path()).map_err(|e| ValidationError::InvalidZip(e.to_string()))?;
 
         if ctx.metadata.install.is_empty() {
-            return Ok(()); // No install instructions, so nothing to validate
+            // The user hasn't provided any explicit install directives, so we assume the ZIP is structured
+            // per the CKAN spec.
+            if !temp_dir.path().join(ctx.metadata.identifier.clone()).exists() {
+                return Err(ValidationError::MissingFiles(vec![ctx.metadata.identifier.clone()]));
+            }
+            // If the expected top-level directory exists, we consider the install directives valid
+            Ok(())
         } else {
             // Validate that all specified install paths exist in the extracted ZIP
             let mut missing_files = Vec::new();
