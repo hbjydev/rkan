@@ -23,6 +23,10 @@ pub enum ValidationError {
     /// The provided tag(s) are not recognized as valid CKAN tags
     #[error("The provided tag(s) are not recognized as valid CKAN tags: {0:?}")]
     InvalidTags(Vec<String>),
+
+    /// The install directives specify an invalid installation path
+    #[error("The install directives specify an invalid installation path: {0}")]
+    InvalidInstallTo(String),
 }
 
 pub struct ValidationContext<'a> {
@@ -45,6 +49,7 @@ pub fn default_validators() -> Vec<Box<dyn Validator>> {
 
         // Installation validators
         Box::new(install::InstallValidator {}),
+        Box::new(install::InstallToValidator {}),
     ]
 }
 

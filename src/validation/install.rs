@@ -36,6 +36,31 @@ impl Validator for InstallValidator {
     }
 }
 
+const VALID_INSTALL_TO_PATHS: &[&str] = &[
+    "GameData",
+    "Missions",
+    "Ships",
+    "Ships/SPH",
+    "Ships/VAB",
+    "Ships/@thumbs/VAB",
+    "Ships/Script",
+    "Tutorial",
+    "Scenarios",
+    "GameRoot",
+];
+pub struct InstallToValidator;
+impl Validator for InstallToValidator {
+    fn validate(&self, ctx: &ValidationContext) -> Result<(), ValidationError> {
+        for install_directive in &ctx.metadata.install {
+            if !VALID_INSTALL_TO_PATHS.contains(&install_directive.install_to.as_str()) {
+                return Err(ValidationError::InvalidInstallTo(install_directive.install_to.clone()));
+            }
+        }
+
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -86,6 +111,54 @@ mod tests {
             assert_eq!(files, vec!["missing_file.txt".to_string()]);
         } else {
             panic!("Expected MissingFiles error");
+        }
+    }
+
+    #[test]
+    fn test_valid_install_to() {
+        let metadata = CkanFile {
+            install: vec![
+                CkanInstallDirective {
+                    file: "GameData/Sol-Configs".to_string(),
+                    install_to: "GameData".to_string(),
+                },
+            ],
+            ..Default::default()
+        };
+
+        let ctx = ValidationContext {
+            metadata: &metadata,
+            zip_path: "tests/fixtures/valid_mod.zip".to_string(),
+        };
+
+        let validator = InstallToValidator;
+        assert!(validator.validate(&ctx).is_ok());
+    }
+
+    #[test]
+    fn test_invalid_install_to() {
+        let metadata = CkanFile {
+            install: vec![
+                CkanInstallDirective {
+                    file: "GameData/Sol-Configs".to_string(),
+                    install_to: "InvalidPath".to_string(),
+                },
+            ],
+            ..Default::default()
+        };
+
+        let ctx = ValidationContext {
+            metadata: &metadata,
+            zip_path: "tests/fixtures/valid_mod.zip".to_string(),
+        };
+
+        let validator = InstallToValidator;
+        let result = validator.validate(&ctx);
+        assert!(result.is_err());
+        if let Err(ValidationError::InvalidInstallTo(path)) = result {
+            assert_eq!(path, "InvalidPath".to_string());
+        } else {
+            panic!("Expected InvalidInstallTo error");
         }
     }
 }
