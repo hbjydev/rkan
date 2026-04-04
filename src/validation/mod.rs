@@ -20,10 +20,6 @@ pub enum ValidationError {
     #[error("The ZIP file is missing required files or directories: {0:?}")]
     MissingFiles(Vec<String>),
 
-    /// The ZIP file contains invalid files or directories
-    #[error("The ZIP file contains invalid files or directories: {0:?}")]
-    InvalidFiles(Vec<String>),
-
     /// The provided tag(s) are not recognized as valid CKAN tags
     #[error("The provided tag(s) are not recognized as valid CKAN tags: {0:?}")]
     InvalidTags(Vec<String>),
