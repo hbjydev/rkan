@@ -46,6 +46,9 @@ pub fn default_validators() -> Vec<Box<dyn Validator>> {
 
         // ZIP file validators
         Box::new(zip::ZipFormatValidator {}),
+
+        // Installation validators
+        Box::new(install::InstallValidator {}),
     ]
 }
 
