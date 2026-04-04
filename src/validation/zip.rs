@@ -6,6 +6,13 @@ impl Validator for ZipFormatValidator {
         let file = std::fs::File::open(&ctx.zip_path)
             .map_err(|e| ValidationError::InvalidZip(format!("Failed to open ZIP file: {}", e)))?;
 
+        let meta = file.metadata()
+            .map_err(|e| ValidationError::InvalidZip(format!("Failed to read ZIP file metadata: {}", e)))?;
+
+        if meta.len() == 0 {
+            return Err(ValidationError::InvalidZip("ZIP file is empty".to_string()));
+        }
+
         zip::ZipArchive::new(file)
             .map_err(|e| ValidationError::InvalidZip(format!("Failed to read ZIP archive: {}", e)))?;
 
