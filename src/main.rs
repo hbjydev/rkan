@@ -98,9 +98,10 @@ async fn run_app() -> Result<(), Box<dyn std::error::Error>> {
 
             let error_count = errors.iter().filter(|r| r.is_err()).count();
             if error_count > 0 {
-                return Err(std::io::Error::other(
-                    format!("Generation completed with {} errors", error_count),
-                )
+                return Err(std::io::Error::other(format!(
+                    "Generation completed with {} errors",
+                    error_count
+                ))
                 .into());
             } else {
                 tracing::info!("Generation completed successfully");
