@@ -43,6 +43,7 @@ fn default_ksp_version() -> String {
 
 /// A specifier for a KSP mod version.
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(untagged)]
 pub enum DependencySpecifier {
     /// The version of the dependency to install
     Version(String),
@@ -54,7 +55,7 @@ pub enum DependencySpecifier {
 
         /// The text to show when choosing a variant of this dependency.
         help_text: Option<String>,
-    }
+    },
 }
 
 #[derive(Debug, Serialize, Deserialize)]
