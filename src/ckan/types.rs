@@ -1,10 +1,12 @@
 use serde::Serialize;
 
-use crate::config;
+use crate::config::{self, DependencySpecifier};
+
+pub const LATEST_SPEC_VERSION: &str = "v1.34";
 
 #[derive(Serialize, Default)]
 pub struct CkanFile {
-    pub spec_version: u64,
+    pub spec_version: String,
     pub identifier: String,
     pub name: String,
     #[serde(rename = "abstract")]
@@ -95,6 +97,8 @@ impl CkanResources {
 #[derive(Clone, Serialize, Default)]
 pub struct CkanDependency {
     pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub choice_help_text: Option<String>,
     #[serde(flatten, skip_serializing_if = "Option::is_none")]
     pub version_spec: Option<CkanDependencyVersionSpecifier>,
 }
@@ -142,8 +146,66 @@ impl From<(String, String)> for CkanDependency {
         // We need to properly support them.
         Self {
             name: identifier,
+            choice_help_text: None,
             version_spec: None,
         }
+    }
+}
+
+impl From<(String, DependencySpecifier)> for CkanDependency {
+    fn from((identifier, spec): (String, DependencySpecifier)) -> Self {
+        Self {
+            name: identifier,
+            choice_help_text: match &spec {
+                DependencySpecifier::Version(_) => None,
+                DependencySpecifier::Config { help_text, .. } => help_text.clone(),
+            },
+            version_spec: match spec {
+                DependencySpecifier::Version(ver) => get_ver_bounds(ver),
+                DependencySpecifier::Config { version, .. } => get_ver_bounds(version),
+            },
+        }
+    }
+}
+
+fn get_ver_bounds(ver: String) -> Option<CkanDependencyVersionSpecifier> {
+    if ver == "*" {
+        // Wildcard -- CKAN just assumes "any" if the version is unset.
+        return None;
+    }
+
+    let mut min_version: Option<String> = None;
+    let mut max_version: Option<String> = None;
+    let mut exact: Option<String> = None;
+
+    for part in ver.split(',').map(str::trim) {
+        if let Some(rest) = part.strip_prefix(">=") {
+            min_version = Some(rest.to_string());
+        } else if let Some(rest) = part.strip_prefix("<=") {
+            max_version = Some(rest.to_string());
+        } else if let Some(rest) = part.strip_prefix('>') {
+            min_version = Some(rest.to_string());
+        } else if let Some(rest) = part.strip_prefix('<') {
+            max_version = Some(rest.to_string());
+        } else if let Some(rest) = part.strip_prefix("==") {
+            exact = Some(rest.to_string());
+        } else if let Some(rest) = part.strip_prefix('=') {
+            exact = Some(rest.to_string());
+        } else {
+            // bare version string, treat as exact
+            exact = Some(part.to_string());
+        }
+    }
+
+    if let Some(v) = exact {
+        Some(CkanDependencyVersionSpecifier::Exact(v))
+    } else if min_version.is_some() || max_version.is_some() {
+        Some(CkanDependencyVersionSpecifier::MinMax {
+            min_version,
+            max_version,
+        })
+    } else {
+        None
     }
 }
 
@@ -166,4 +228,116 @@ impl From<config::ModInstallDirective> for CkanInstallDirective {
 pub struct CkanDownloadHash {
     pub sha1: String,
     pub sha256: String,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn wildcard_returns_none() {
+        assert!(get_ver_bounds("*".to_string()).is_none());
+    }
+
+    #[test]
+    fn gte_sets_min() {
+        let Some(CkanDependencyVersionSpecifier::MinMax {
+            min_version,
+            max_version,
+        }) = get_ver_bounds(">=v0.9.5-0".to_string())
+        else {
+            panic!("expected MinMax")
+        };
+        assert_eq!(min_version, Some("v0.9.5-0".to_string()));
+        assert_eq!(max_version, None);
+    }
+
+    #[test]
+    fn lt_sets_max() {
+        let Some(CkanDependencyVersionSpecifier::MinMax {
+            min_version,
+            max_version,
+        }) = get_ver_bounds("<1.6.0".to_string())
+        else {
+            panic!("expected MinMax")
+        };
+        assert_eq!(min_version, None);
+        assert_eq!(max_version, Some("1.6.0".to_string()));
+    }
+
+    #[test]
+    fn lte_sets_max() {
+        let Some(CkanDependencyVersionSpecifier::MinMax {
+            min_version,
+            max_version,
+        }) = get_ver_bounds("<=2.0.0".to_string())
+        else {
+            panic!("expected MinMax")
+        };
+        assert_eq!(min_version, None);
+        assert_eq!(max_version, Some("2.0.0".to_string()));
+    }
+
+    #[test]
+    fn gt_sets_min() {
+        let Some(CkanDependencyVersionSpecifier::MinMax {
+            min_version,
+            max_version,
+        }) = get_ver_bounds(">1.0.0".to_string())
+        else {
+            panic!("expected MinMax")
+        };
+        assert_eq!(min_version, Some("1.0.0".to_string()));
+        assert_eq!(max_version, None);
+    }
+
+    #[test]
+    fn compound_range_sets_both() {
+        let Some(CkanDependencyVersionSpecifier::MinMax {
+            min_version,
+            max_version,
+        }) = get_ver_bounds(">=1.0.0,<2.0.0".to_string())
+        else {
+            panic!("expected MinMax")
+        };
+        assert_eq!(min_version, Some("1.0.0".to_string()));
+        assert_eq!(max_version, Some("2.0.0".to_string()));
+    }
+
+    #[test]
+    fn exact_with_double_eq() {
+        let Some(CkanDependencyVersionSpecifier::Exact(v)) = get_ver_bounds("==1.2.3".to_string())
+        else {
+            panic!("expected Exact")
+        };
+        assert_eq!(v, "1.2.3");
+    }
+
+    #[test]
+    fn exact_with_single_eq() {
+        let Some(CkanDependencyVersionSpecifier::Exact(v)) = get_ver_bounds("=1.2.3".to_string())
+        else {
+            panic!("expected Exact")
+        };
+        assert_eq!(v, "1.2.3");
+    }
+
+    #[test]
+    fn bare_version_is_exact() {
+        let Some(CkanDependencyVersionSpecifier::Exact(v)) = get_ver_bounds("1.2.3".to_string())
+        else {
+            panic!("expected Exact")
+        };
+        assert_eq!(v, "1.2.3");
+    }
+
+    #[test]
+    fn arbitrary_string_value_preserved() {
+        let Some(CkanDependencyVersionSpecifier::MinMax { min_version, .. }) =
+            get_ver_bounds(">=some-arbitrary-string".to_string())
+        else {
+            panic!("expected MinMax")
+        };
+        assert_eq!(min_version, Some("some-arbitrary-string".to_string()));
+    }
 }

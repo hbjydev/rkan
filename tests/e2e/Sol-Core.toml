@@ -1,0 +1,87 @@
+identifier = "Sol-Core"
+name = "Sol Core"
+abstract = "Core Textures and Sounds for Sol"
+tags = ["config", "planet-pack"]
+license = "restricted"
+authors = ["ballisticfox", "Charon_S"]
+ksp_version = "1.12"
+provides = ["RealSolarSystem", "RP-1-ExpressInstall-Graphics"]
+repo = "RSS-Reborn/Sol-Core"
+asset_match = "Sol_Core-.*\\.zip"
+
+[resources]
+manual = "https://github.com/RSS-Reborn/Sol-Configs/wiki"
+homepage = "https://github.com/RSS-Reborn/Sol-Configs/wiki"
+
+[[install]]
+file = "GameData/Sol-Textures"
+install_to = "GameData"
+
+[dependencies]
+Kopernicus = ">=release-1.12.1-242"
+KSPBurst = "*"
+Harmony2 = "*"
+ParallaxContinued-KTL = "*"
+KSPTextureLoader = "*"
+AdvancedPQSTools = ">=1.6.1"
+BurstPQS = "*"
+KSPCommunityFixes = "*"
+KSCSwitcher = "*"
+TextureReplacer = "*"
+
+Sol-Configs = "*"
+Sol-Visuals = "*"
+
+[dependencies.Sol-Launchsites]
+version = "*"
+help_text = "Choose a launch sites texture resolution."
+
+[dependencies.Sol-Sun]
+version = "*"
+help_text = "Choose a Sun texture resolution."
+
+[dependencies.Sol-Mercury]
+version = "*"
+help_text = "Choose a Mercury texture resolution."
+
+[dependencies.Sol-Venus]
+version = "*"
+help_text = "Choose a Venus texture resolution."
+
+[dependencies.Sol-EarthSystem]
+version = "*"
+help_text = "Choose an Earth system texture resolution."
+
+[dependencies.Sol-MarsSystem]
+version = "*"
+help_text = "Choose a Mars system texture resolution."
+
+[dependencies.Sol-JupiterSystem]
+version = "*"
+help_text = "Choose a Jupiter system texture resolution."
+
+[dependencies.Sol-SaturnSystem]
+version = "*"
+help_text = "Choose a Saturn system texture resolution."
+
+[dependencies.Sol-UranusSystem]
+version = "*"
+help_text = "Choose a Uranus system texture resolution."
+
+[dependencies.Sol-NeptuneSystem]
+version = "*"
+help_text = "Choose a Neptune system texture resolution."
+
+[dependencies.Sol-AsteroidBelt]
+version = "*"
+help_text = "Choose an asteroid belt texture resolution."
+
+[dependencies.Sol-KuiperBelt]
+version = "*"
+help_text = "Choose a Kuiper belt texture resolution."
+
+[conflicts]
+RealSolarSystem = "*"
+RP-1-ExpressInstall-Graphics-High = "*"
+RP-1-ExpressInstall-Graphics-Medium = "*"
+RP-1-ExpressInstall-Graphics-Low = "*"

@@ -8,8 +8,10 @@ use super::types::{
     CkanResources,
 };
 use crate::{
+    ckan::types::LATEST_SPEC_VERSION,
     config::Mod,
-    github::{DownloadedAsset, GithubClient}, validation,
+    github::{DownloadedAsset, GithubClient},
+    validation,
 };
 
 struct FileTask {
@@ -149,6 +151,7 @@ pub async fn generate(options: GenerateOptions<'_>) -> Result<(), Box<dyn std::e
                     .filter(|other| other.identifier != v.identifier)
                     .map(|other| CkanDependency {
                         name: format!("{}-{}", base_id, other.identifier),
+                        choice_help_text: None,
                         version_spec: None,
                     })
                     .chain(base_conflicts.iter().cloned())
@@ -257,7 +260,7 @@ async fn generate_file(
             .unwrap_or(ctx.publish_date)
             .to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
         x_generated_by: concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION")).to_string(),
-        spec_version: 1,
+        spec_version: LATEST_SPEC_VERSION.to_string(),
     };
 
     validation::run_validators(
