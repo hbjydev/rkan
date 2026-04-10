@@ -2,9 +2,9 @@ use thiserror::Error;
 
 use crate::ckan::types::CkanFile;
 
+pub mod install;
 pub mod metadata;
 pub mod zip;
-pub mod install;
 
 #[derive(Debug, Error)]
 pub enum ValidationError {
@@ -43,17 +43,18 @@ pub fn default_validators() -> Vec<Box<dyn Validator>> {
         // Metadata validators
         Box::new(metadata::CkanIdentifierValidator {}),
         Box::new(metadata::CkanTagsValidator {}),
-
         // ZIP file validators
         Box::new(zip::ZipFormatValidator {}),
-
         // Installation validators
         Box::new(install::InstallValidator {}),
         Box::new(install::InstallToValidator {}),
     ]
 }
 
-pub fn run_validators(validators: &[Box<dyn Validator>], ctx: &ValidationContext) -> Result<(), ValidationError> {
+pub fn run_validators(
+    validators: &[Box<dyn Validator>],
+    ctx: &ValidationContext,
+) -> Result<(), ValidationError> {
     for validator in validators {
         validator.validate(ctx)?;
     }

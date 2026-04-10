@@ -8,7 +8,10 @@ use super::types::{
     CkanResources,
 };
 use crate::{
-    ckan::types::LATEST_SPEC_VERSION, config::Mod, github::{DownloadedAsset, GithubClient}, validation
+    ckan::types::LATEST_SPEC_VERSION,
+    config::Mod,
+    github::{DownloadedAsset, GithubClient},
+    validation,
 };
 
 struct FileTask {

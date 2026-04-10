@@ -6,15 +6,17 @@ impl Validator for ZipFormatValidator {
         let file = std::fs::File::open(&ctx.zip_path)
             .map_err(|e| ValidationError::InvalidZip(format!("Failed to open ZIP file: {}", e)))?;
 
-        let meta = file.metadata()
-            .map_err(|e| ValidationError::InvalidZip(format!("Failed to read ZIP file metadata: {}", e)))?;
+        let meta = file.metadata().map_err(|e| {
+            ValidationError::InvalidZip(format!("Failed to read ZIP file metadata: {}", e))
+        })?;
 
         if meta.len() == 0 {
             return Err(ValidationError::InvalidZip("ZIP file is empty".to_string()));
         }
 
-        zip::ZipArchive::new(file)
-            .map_err(|e| ValidationError::InvalidZip(format!("Failed to read ZIP archive: {}", e)))?;
+        zip::ZipArchive::new(file).map_err(|e| {
+            ValidationError::InvalidZip(format!("Failed to read ZIP archive: {}", e))
+        })?;
 
         Ok(())
     }
@@ -22,8 +24,11 @@ impl Validator for ZipFormatValidator {
 
 #[cfg(test)]
 mod tests {
-    use crate::{ckan::types::CkanFile, validation::{ValidationContext, ValidationError}};
     use super::*;
+    use crate::{
+        ckan::types::CkanFile,
+        validation::{ValidationContext, ValidationError},
+    };
 
     #[test]
     fn test_valid_zip() {
@@ -42,6 +47,9 @@ mod tests {
             metadata: &CkanFile::default(),
             zip_path: "tests/fixtures/invalid_mod.zip".to_string(),
         };
-        assert!(matches!(validator.validate(&ctx), Err(ValidationError::InvalidZip(_))));
+        assert!(matches!(
+            validator.validate(&ctx),
+            Err(ValidationError::InvalidZip(_))
+        ));
     }
 }

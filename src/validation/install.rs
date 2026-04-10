@@ -4,16 +4,26 @@ pub struct InstallValidator;
 impl Validator for InstallValidator {
     fn validate(&self, ctx: &ValidationContext) -> Result<(), ValidationError> {
         // Open & extract the ZIP file to a temporary directory
-        let temp_dir = tempfile::tempdir().map_err(|e| ValidationError::InvalidZip(e.to_string()))?;
-        let zip_file = std::fs::File::open(&ctx.zip_path).map_err(|e| ValidationError::InvalidZip(e.to_string()))?;
-        let mut zip = zip::ZipArchive::new(zip_file).map_err(|e| ValidationError::InvalidZip(e.to_string()))?;
-        zip.extract(temp_dir.path()).map_err(|e| ValidationError::InvalidZip(e.to_string()))?;
+        let temp_dir =
+            tempfile::tempdir().map_err(|e| ValidationError::InvalidZip(e.to_string()))?;
+        let zip_file = std::fs::File::open(&ctx.zip_path)
+            .map_err(|e| ValidationError::InvalidZip(e.to_string()))?;
+        let mut zip = zip::ZipArchive::new(zip_file)
+            .map_err(|e| ValidationError::InvalidZip(e.to_string()))?;
+        zip.extract(temp_dir.path())
+            .map_err(|e| ValidationError::InvalidZip(e.to_string()))?;
 
         if ctx.metadata.install.is_empty() {
             // The user hasn't provided any explicit install directives, so we assume the ZIP is structured
             // per the CKAN spec.
-            if !temp_dir.path().join(ctx.metadata.identifier.clone()).exists() {
-                return Err(ValidationError::MissingFiles(vec![ctx.metadata.identifier.clone()]));
+            if !temp_dir
+                .path()
+                .join(ctx.metadata.identifier.clone())
+                .exists()
+            {
+                return Err(ValidationError::MissingFiles(vec![
+                    ctx.metadata.identifier.clone(),
+                ]));
             }
             // If the expected top-level directory exists, we consider the install directives valid
             Ok(())
@@ -21,7 +31,12 @@ impl Validator for InstallValidator {
             // Validate that all specified install paths exist in the extracted ZIP
             let mut missing_files = Vec::new();
             for install_directive in &ctx.metadata.install {
-                let full_path = temp_dir.path().join(install_directive.file.split('/').collect::<std::path::PathBuf>());
+                let full_path = temp_dir.path().join(
+                    install_directive
+                        .file
+                        .split('/')
+                        .collect::<std::path::PathBuf>(),
+                );
                 if !full_path.exists() {
                     missing_files.push(install_directive.file.clone());
                 }
@@ -53,7 +68,9 @@ impl Validator for InstallToValidator {
     fn validate(&self, ctx: &ValidationContext) -> Result<(), ValidationError> {
         for install_directive in &ctx.metadata.install {
             if !VALID_INSTALL_TO_PATHS.contains(&install_directive.install_to.as_str()) {
-                return Err(ValidationError::InvalidInstallTo(install_directive.install_to.clone()));
+                return Err(ValidationError::InvalidInstallTo(
+                    install_directive.install_to.clone(),
+                ));
             }
         }
 
@@ -69,12 +86,10 @@ mod tests {
     #[test]
     fn test_valid_install_directives() {
         let metadata = CkanFile {
-            install: vec![
-                CkanInstallDirective {
-                    file: "GameData/Sol-Configs".to_string(),
-                    install_to: "GameData".to_string(),
-                },
-            ],
+            install: vec![CkanInstallDirective {
+                file: "GameData/Sol-Configs".to_string(),
+                install_to: "GameData".to_string(),
+            }],
             ..Default::default()
         };
 
@@ -90,12 +105,10 @@ mod tests {
     #[test]
     fn test_missing_install_files() {
         let metadata = CkanFile {
-            install: vec![
-                CkanInstallDirective {
-                    file: "missing_file.txt".to_string(),
-                    install_to: "GameData".to_string(),
-                },
-            ],
+            install: vec![CkanInstallDirective {
+                file: "missing_file.txt".to_string(),
+                install_to: "GameData".to_string(),
+            }],
             ..Default::default()
         };
 
@@ -117,12 +130,10 @@ mod tests {
     #[test]
     fn test_valid_install_to() {
         let metadata = CkanFile {
-            install: vec![
-                CkanInstallDirective {
-                    file: "GameData/Sol-Configs".to_string(),
-                    install_to: "GameData".to_string(),
-                },
-            ],
+            install: vec![CkanInstallDirective {
+                file: "GameData/Sol-Configs".to_string(),
+                install_to: "GameData".to_string(),
+            }],
             ..Default::default()
         };
 
@@ -138,12 +149,10 @@ mod tests {
     #[test]
     fn test_invalid_install_to() {
         let metadata = CkanFile {
-            install: vec![
-                CkanInstallDirective {
-                    file: "GameData/Sol-Configs".to_string(),
-                    install_to: "InvalidPath".to_string(),
-                },
-            ],
+            install: vec![CkanInstallDirective {
+                file: "GameData/Sol-Configs".to_string(),
+                install_to: "InvalidPath".to_string(),
+            }],
             ..Default::default()
         };
 
