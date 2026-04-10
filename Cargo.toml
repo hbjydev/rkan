@@ -5,7 +5,7 @@ homepage = "https://github.com/hbjydev/rkan"
 repository = "https://github.com/hbjydev/rkan"
 readme = "README-crates.io.md"
 license = "Apache-2.0"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2024"
 
 [dependencies]
