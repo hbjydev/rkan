@@ -1,4 +1,6 @@
-use std::{collections::HashMap, path::Path};
+use std::path::Path;
+
+use indexmap::IndexMap;
 
 use serde::{Deserialize, Serialize};
 
@@ -25,13 +27,13 @@ pub struct Mod {
     pub provides: Vec<String>,
     // map of identifier -> version requirement
     #[serde(default)]
-    pub dependencies: HashMap<String, DependencySpecifier>,
+    pub dependencies: IndexMap<String, DependencySpecifier>,
     // map of identifier -> version requirement
     #[serde(default)]
-    pub conflicts: HashMap<String, String>,
+    pub conflicts: IndexMap<String, String>,
     // map of identifier -> version requirement
     #[serde(default)]
-    pub recommends: HashMap<String, DependencySpecifier>,
+    pub recommends: IndexMap<String, DependencySpecifier>,
 
     #[serde(default)]
     pub variants: Vec<ModVariant>,
