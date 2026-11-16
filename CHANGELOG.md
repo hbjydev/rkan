@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.3.5](https://github.com/hbjydev/rkan/compare/v0.3.4...v0.3.5) (2026-11-16)
+
+
+### Documentation
+
+* add rkan crate metadata ([411d4d3](https://github.com/hbjydev/rkan/commit/411d4d32872429ab3b637f8d044ce4371644de6f))
+* add usage and config guides ([b0b5e61](https://github.com/hbjydev/rkan/commit/b0b5e6191c42f751d454a359601e885502957fd4))
+* demo in the readme, updated by github actions ([d4be7eb](https://github.com/hbjydev/rkan/commit/d4be7eb366ac4f87f66bb02c761d4f4ce1b6014c))
+
+
+### Continuous Integration
+
+* **release:** include target in release binary name ([f6991dc](https://github.com/hbjydev/rkan/commit/f6991dc9b684d81a992722eb0eb179cef73a4d52))
+
 ## [0.3.4](https://github.com/hbjydev/rkan/compare/v0.3.3...v0.3.4) (2026-11-16)
 
 
