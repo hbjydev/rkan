@@ -48,6 +48,7 @@ jobs:
         env:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
           MISE_TASK_RUN_AUTO_INSTALL: false
+        shell: bash
         run: |
           mise run build-release --target ${{ matrix.target }}
           mv "target/${{ matrix.target }}/release/rkan${{ matrix.ext }}" "target/${{ matrix.target }}/release/rkan-${RELEASE_TAG}${{ matrix.ext }}"
@@ -69,6 +70,7 @@ jobs:
 
       - name: Upload release builds to CI
         if: github.event_name == 'release'
+        shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
