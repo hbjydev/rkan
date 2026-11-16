@@ -94,8 +94,11 @@ jobs:
         uses: bitshift-systems/.github/actions/setup-repo@a0aab65f0651370a9be252117577556a9ee67bab # setup-repo-v2.2.1
         with:
           cache-key: build
+          install-args: rust aqua:nextest-rs/nextest/cargo-nextest
 
       - name: Build and archive tests
+        env:
+          MISE_TASK_RUN_AUTO_INSTALL: false
         run: mise run test-archive
 
       - name: Upload workspace tests
@@ -127,7 +130,7 @@ jobs:
         uses: bitshift-systems/.github/actions/setup-repo@a0aab65f0651370a9be252117577556a9ee67bab # setup-repo-v2.2.1
         with:
           cache-key: build
-          install-args: aqua:nextest-rs/nextest/cargo-nextest hk
+          install-args: aqua:nextest-rs/nextest/cargo-nextest
 
       - name: Download tests
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
@@ -136,6 +139,8 @@ jobs:
           path: target/nextest
 
       - name: Run unit tests
+        env:
+          MISE_TASK_RUN_AUTO_INSTALL: false
         run: mise run test-from-archive
 
   workflow-lint:
