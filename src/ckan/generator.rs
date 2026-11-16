@@ -1,6 +1,7 @@
 use std::env;
 
 use futures_util::{StreamExt, stream::FuturesUnordered};
+use octocrab::models::repos::Asset;
 use tracing::instrument;
 
 use super::types::{
@@ -34,7 +35,6 @@ struct ReleaseContext {
     recommends: Vec<CkanDependency>,
     install: Vec<CkanInstallDirective>,
     ksp_version: String,
-    publish_date: chrono::DateTime<chrono::Utc>,
     base_id: String,
 }
 
@@ -68,7 +68,10 @@ pub async fn generate(options: GenerateOptions<'_>) -> Result<(), Box<dyn std::e
         abstract_
     } else {
         tracing::debug!("No description set, pulling repo metadata from GitHub");
-        gh.get_repo_info(owner, repo).await?.description
+        match gh.get_repo_info(owner, repo).await?.description {
+            Some(d) => d,
+            None => "No description provided".to_string(),
+        }
     };
 
     tracing::debug!(
@@ -172,7 +175,6 @@ pub async fn generate(options: GenerateOptions<'_>) -> Result<(), Box<dyn std::e
         recommends: base_recommends,
         install: base_install,
         ksp_version: mod_config.ksp_version,
-        publish_date,
         base_id,
     };
 
@@ -197,7 +199,7 @@ pub async fn generate(options: GenerateOptions<'_>) -> Result<(), Box<dyn std::e
 )]
 async fn generate_file(
     task: FileTask,
-    assets: &[octorust::types::ReleaseAsset],
+    assets: &[Asset],
     out_dir: &std::path::Path,
     ctx: &ReleaseContext,
     gh: &GithubClient,
@@ -245,7 +247,7 @@ async fn generate_file(
         recommends: ctx.recommends.clone(),
         install: ctx.install.clone(),
         ksp_version: ctx.ksp_version.to_string(),
-        download: asset.browser_download_url.clone(),
+        download: asset.browser_download_url.to_string(),
         download_size,
         download_hash: CkanDownloadHash {
             sha256: download_hash_sha256,
@@ -257,7 +259,6 @@ async fn generate_file(
         install_size,
         release_date: asset
             .updated_at
-            .unwrap_or(ctx.publish_date)
             .to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
         x_generated_by: concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION")).to_string(),
         spec_version: LATEST_SPEC_VERSION.to_string(),
