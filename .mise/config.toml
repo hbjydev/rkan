@@ -1,0 +1,80 @@
+[tools]
+jactionlint = { version = "2.6.0", workflow = "release.yaml" }
+rust = "1.100.0"
+shellcheck = "0.11.0"
+"aqua:EmbarkStudios/cargo-deny" = "0.20.2"
+"aqua:nextest-rs/nextest/cargo-nextest" = "0.9.146"
+oxfmt = "0.78.0"
+hk = { version = "2.12.0", workflow = "release.yml" }
+
+[hooks]
+postinstall = "hk install --mise"
+
+[tasks.rust-components]
+description = "Install Rust components required by project tasks"
+run = "rustup component add rustfmt clippy"
+
+[tasks.build]
+description = "Compile the project (debug, locked deps)"
+usage = '''
+flag "-t --target <target>" help="Set the target triple for cross-compilation"
+'''
+run = """
+target="${usage_target:-$(rustc -vV | grep 'host:' | awk '{print $2}')}"
+cargo build --locked --target "${target}"
+"""
+
+[tasks.build-release]
+description = "Compile the release binary"
+usage = '''
+flag "-t --target <target>" help="Set the target triple for cross-compilation"
+'''
+run = """
+target="${usage_target:-$(rustc -vV | grep 'host:' | awk '{print $2}')}"
+cargo build --release --locked --target="${target}"
+"""
+
+[tasks.audit]
+description = "Supply-chain + license audit"
+run = "cargo deny check"
+
+[tasks.test]
+description = "Hermetic test suite: unit + serde + validation; also compile-checks feature-gated targets"
+run = "cargo nextest run --workspace --locked"
+
+[tasks.test-archive]
+description = "Build the workspace ONCE (--all-features) and pack its tests into nextest archives under target/nextest/ (what CI's test jobs and e2e shards run)"
+run = '''
+set -eu
+mkdir -p target/nextest
+cargo nextest archive --workspace --all-features --locked --archive-file target/nextest/workspace.tar.zst
+'''
+
+[tasks.test-from-archive]
+description = "Run the hermetic suite from the archive `test-archive` built (no compile, no doctests)"
+run = '''
+cargo-nextest nextest run --profile ci --workspace-remap . \
+  --archive-file target/nextest/workspace.tar.zst \
+  --no-tests pass
+'''
+
+[tasks.clippy]
+description = "Clippy across the workspace incl. feature-gated targets, warnings are errors"
+run = "cargo clippy --all-targets --all-features --locked -- -D warnings"
+
+[tasks.fmt]
+description = "Format the workspace in place"
+run = "cargo fmt"
+
+[tasks.fmt-check]
+description = "Verify formatting without changing files (CI gate)"
+run = "cargo fmt -- --check"
+
+[tasks.ci]
+description = "The full local gate: the hermetic Rust suite"
+depends = [
+  "fmt-check",
+  "clippy",
+  "build",
+  "test",
+]
