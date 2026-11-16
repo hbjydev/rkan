@@ -1,3 +1,5 @@
+debug/
 target/
-# test outputs
+**/*.rs.bk
+*.pdb
 /ckan/

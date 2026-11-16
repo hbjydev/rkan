@@ -1,12 +1,13 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - 'v*'
+  release:
+    types:
+      - published
 
-env:
-  CARGO_TERM_COLOR: always
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'release' }}
 
 jobs:
   build:
@@ -31,15 +32,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+      - name: Setup Repo
+        uses: bitshift-systems/.github/actions/setup-repo@a0aab65f0651370a9be252117577556a9ee67bab # setup-repo-v2.2.1
         with:
-          targets: ${{ matrix.target }}
-
-      - uses: Swatinem/rust-cache@v2
+          cache-key: release-build
+          install-args: rust aqua:EmbarkStudios/cargo-deny hk
 
       - name: Build release binary
-        run: cargo build --locked --release --target ${{ matrix.target }}
+        run: mise run build-release
 
       - name: Rename binary
         shell: bash
@@ -59,10 +59,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-
-      - uses: Swatinem/rust-cache@v2
+      - name: Setup Repo
+        uses: bitshift-systems/.github/actions/setup-repo@a0aab65f0651370a9be252117577556a9ee67bab # setup-repo-v2.2.1
+        with:
+          cache-key: publish
+          install-args: rust
 
       - name: Publish
         run: cargo publish --locked

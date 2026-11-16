@@ -1,0 +1,48 @@
+amends "package://github.com/jdx/hk/releases/download/v2.8.0/hk@2.8.0#/Config.pkl"
+import "package://github.com/jdx/hk/releases/download/v2.8.0/hk@2.8.0#/Builtins.pkl"
+
+local formatRust = new Step {
+  glob = List("*.rs")
+  check = "cargo fmt --all -- --check"
+  fix = "cargo fmt --all"
+}
+
+local formatJson = new Step {
+  glob = List("*.json", "*.json5", "*.jsonc")
+  exclude = List(".mise/locks/**")
+  check = "oxfmt --no-error-on-unmatched-pattern --check {{files}}"
+  fix = "oxfmt --no-error-on-unmatched-pattern {{files}}"
+}
+
+local formatMarkdown = new Step {
+  glob = List("*.md", "*.markdown", "*.mdx")
+  check = "oxfmt --no-error-on-unmatched-pattern --check {{files}}"
+  fix = "oxfmt --no-error-on-unmatched-pattern {{files}}"
+}
+
+local formatYaml = new Step {
+  glob = List("*.yml", "*.yaml")
+  exclude = List(".mise/locks/**")
+  check = "oxfmt --no-error-on-unmatched-pattern --check {{files}}"
+  fix = "oxfmt --no-error-on-unmatched-pattern {{files}}"
+}
+
+local shellcheck = new Step {
+  glob = List("*.sh")
+  fix = "shellcheck {{files}}"
+}
+
+local jactionlint = new Step {
+  glob = List(".github/workflows/*.yaml", ".github/actions/**/action.yaml", "actions/**/action.yaml")
+  check = "jactionlint {{files}}"
+  fix = "jactionlint --fix {{files}}"
+}
+
+steps {
+  ["format-rust"] = formatRust
+  ["format-json"] = formatJson
+  ["format-markdown"] = formatMarkdown
+  ["format-yaml"] = formatYaml
+  ["shellcheck"] = shellcheck
+  ["jactionlint"] = jactionlint
+}
