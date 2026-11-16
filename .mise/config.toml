@@ -26,7 +26,13 @@ cargo build --locked --target "${target}"
 
 [tasks.build-release]
 description = "Compile the release binary"
-run = "cargo build --release --locked"
+usage = '''
+flag "-t --target <target>" help="Set the target triple for cross-compilation"
+'''
+run = """
+target="${usage_target:-$(rustc -vV | grep 'host:' | awk '{print $2}')}"
+cargo build --release --locked --target="${target}"
+"""
 
 [tasks.audit]
 description = "Supply-chain + license audit"
