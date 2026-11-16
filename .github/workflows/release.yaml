@@ -51,8 +51,8 @@ jobs:
         shell: bash
         run: |
           mise run build-release --target ${{ matrix.target }}
-          mv "target/${{ matrix.target }}/release/rkan${{ matrix.ext }}" "target/${{ matrix.target }}/release/rkan-${RELEASE_TAG}${{ matrix.ext }}"
-          echo "path=target/${{ matrix.target }}/release/rkan-${RELEASE_TAG}${{ matrix.ext }}" >> "$GITHUB_OUTPUT"
+          mv "target/${{ matrix.target }}/release/rkan${{ matrix.ext }}" "target/${{ matrix.target }}/release/rkan-${RELEASE_TAG}-${{ matrix.target }}${{ matrix.ext }}"
+          echo "path=target/${{ matrix.target }}/release/rkan-${RELEASE_TAG}-${{ matrix.target }}${{ matrix.ext }}" >> "$GITHUB_OUTPUT"
 
       - name: Attest build provenance
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
