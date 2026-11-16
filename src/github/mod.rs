@@ -1,7 +1,13 @@
 use std::io::Write;
 
 use futures_util::StreamExt;
-use octorust::auth::Credentials;
+use octocrab::{
+    Octocrab,
+    models::{
+        Repository,
+        repos::{Asset, Release},
+    },
+};
 use sha2::Digest;
 use tracing::instrument;
 
@@ -16,7 +22,7 @@ pub struct DownloadedAsset {
 }
 
 #[derive(Clone)]
-pub struct GithubClient(octorust::Client, reqwest::Client);
+pub struct GithubClient(octocrab::Octocrab, reqwest::Client);
 
 impl GithubClient {
     pub fn new(token: Option<String>) -> Result<Self, Box<dyn std::error::Error>> {
@@ -24,10 +30,12 @@ impl GithubClient {
             .user_agent(GITHUB_USER_AGENT)
             .build()?;
 
-        let creds = token.map(Credentials::Token);
-        let client = octorust::Client::new(GITHUB_USER_AGENT, creds)?;
+        let mut client = Octocrab::builder();
+        if let Some(token) = token {
+            client = client.personal_token(token);
+        }
 
-        Ok(Self(client, reqwest_client))
+        Ok(Self(client.build()?, reqwest_client))
     }
 
     // #[instrument(skip(self), err(Debug))]
@@ -35,8 +43,8 @@ impl GithubClient {
         &self,
         owner: &str,
         repo: &str,
-    ) -> Result<octorust::types::FullRepository, Box<dyn std::error::Error>> {
-        Ok(self.0.repos().get(owner, repo).await?.body)
+    ) -> Result<Repository, Box<dyn std::error::Error>> {
+        Ok(self.0.repos(owner, repo).get().await?)
     }
 
     // #[instrument(skip(self), err(Debug))]
@@ -44,8 +52,8 @@ impl GithubClient {
         &self,
         owner: &str,
         repo: &str,
-    ) -> Result<octorust::types::Release, Box<dyn std::error::Error>> {
-        Ok(self.0.repos().get_latest_release(owner, repo).await?.body)
+    ) -> Result<Release, Box<dyn std::error::Error>> {
+        Ok(self.0.repos(owner, repo).releases().get_latest().await?)
     }
 
     // #[instrument(skip(self), err(Debug))]
@@ -54,13 +62,8 @@ impl GithubClient {
         owner: &str,
         repo: &str,
         tag: &str,
-    ) -> Result<octorust::types::Release, Box<dyn std::error::Error>> {
-        Ok(self
-            .0
-            .repos()
-            .get_release_by_tag(owner, repo, tag)
-            .await?
-            .body)
+    ) -> Result<Release, Box<dyn std::error::Error>> {
+        Ok(self.0.repos(owner, repo).releases().get_by_tag(tag).await?)
     }
 
     #[instrument(
@@ -74,11 +77,11 @@ impl GithubClient {
     )]
     pub async fn download_and_hash(
         &self,
-        asset: octorust::types::ReleaseAsset,
+        asset: Asset,
         dir: Option<&std::path::Path>,
     ) -> Result<DownloadedAsset, Box<dyn std::error::Error>> {
         tracing::debug!("Starting download of asset");
-        let response = self.1.get(&asset.browser_download_url).send().await?;
+        let response = self.1.get(asset.browser_download_url).send().await?;
         let mut stream = response.bytes_stream();
 
         let mut temp_file = if let Some(dir) = dir {
