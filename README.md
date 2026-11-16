@@ -9,11 +9,6 @@ metadata files & repositories.
 
 ![RKAN generates CKAN metadata from the E2E files](./docs/demo/rkan-e2e.gif)
 
-## Configuration Reference
-
-The config files are TOML files. See [MyCoolMod.toml](./examples/MyCoolMod.toml)
-for an example of the configuration syntax used to generate CKAN files.
-
 ## Installation
 
 ### Binaries
@@ -43,9 +38,65 @@ $ cd rkan
 $ mise trust
 $ mise install
 
-# to generate a debug build in target/debug/rkan:
+# to generate a debug build in target/<target-triple>/debug/rkan:
 $ mise run build
 
-# to generate a release build in target/release/rkan:
+# to generate a release build in target/<target-triple>/release/rkan:
 $ mise run build-release
 ```
+
+## Quick start
+
+RKAN reads TOML configuration files and generates CKAN metadata, the information
+that CKAN uses to download and install mods. Each mod needs a GitHub release
+with a ZIP file attached.
+
+After installation, create a directory for your configuration files:
+
+```bash
+mkdir -p configs
+```
+
+Save the following as `configs/MyCoolMod.toml`.
+Replace the example values with your mod details.
+Set `file` to a path inside your ZIP file.
+
+```toml
+identifier = "MyCoolMod"
+name = "My Cool Mod"
+repo = "YOUR-ACCOUNT/YOUR-MOD"
+abstract = "A short description of the mod."
+authors = ["Your Name"]
+tags = ["plugin"]
+license = "MIT"
+ksp_version = "1.12"
+asset_match = '^MyCoolMod-.*\.zip$'
+
+[resources]
+
+[[install]]
+file = "GameData/MyCoolMod"
+install_to = "GameData"
+```
+
+From the directory that contains `configs/`, run:
+
+```bash
+rkan generate
+```
+
+RKAN downloads the matching ZIP from the latest release and makes sure that the
+metadata and installation paths meet its requirements. For a release tagged
+`v1.0.0`, it writes `ckan/MyCoolMod/MyCoolMod-v1.0.0.ckan`.
+RKAN creates the output directories. It does not publish the files or install
+the mod into KSP.
+
+To generate only this mod, use its identifier:
+
+```bash
+rkan generate MyCoolMod
+```
+
+See the [usage guide](./docs/usage.md) for command flags, authentication, output
+behavior, and troubleshooting. See the [configuration reference](./docs/configuration.md)
+for dependencies, installation paths, and variants.
