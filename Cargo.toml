@@ -1,9 +1,8 @@
 [package]
 name = "rkan"
 description = "A Rust-based CLI tool for managing CKAN metadata files and repositories."
-homepage = "https://github.com/hbjydev/rkan"
 repository = "https://github.com/hbjydev/rkan"
-readme = "README-crates.io.md"
+readme = "README.md"
 license = "Apache-2.0"
 version = "0.3.0"
 edition = "2024"
@@ -29,7 +28,6 @@ hex = "0.4"
 regex = "1"
 tracing-indicatif = "0.3"
 indicatif = "0.18"
-semver = "1.0.28"
 lazy_static = "1.5.0"
 indexmap = { version = "2", features = ["serde"] }
 
