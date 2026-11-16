@@ -1,0 +1,69 @@
+---
+name: Update Demo
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  record:
+    if: github.ref == 'refs/heads/main'
+    name: Record and publish demo
+    runs-on: ubuntu-26.04
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Repo
+        uses: bitshift-systems/.github/actions/setup-repo@a0aab65f0651370a9be252117577556a9ee67bab # setup-repo-v2.2.1
+        with:
+          cache-key: demo
+          install-args: rust
+
+      - name: Install terminal font
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends fonts-dejavu-core
+
+      - name: Record demo
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          mise exec aqua:asciinema/asciinema@3.2.1 aqua:asciinema/agg@1.9.0 -- \
+            bash scripts/record-demo.sh
+
+      - name: Commit and push demo
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh auth setup-git
+          git fetch origin main
+          if [[ "$(git rev-parse origin/main)" != "$GITHUB_SHA" ]]; then
+            echo "A newer commit reached main. Skip this recording."
+            exit 0
+          fi
+
+          git add docs/demo/rkan-e2e.gif
+          if git diff --cached --quiet; then
+            echo "The demo GIF did not change."
+            exit 0
+          fi
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git -c core.hooksPath=/dev/null commit -m 'docs(demo): refresh terminal recording'
+          git push origin HEAD:main
