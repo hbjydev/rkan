@@ -1696,7 +1696,6 @@ dependencies = [
  "hex",
  "indexmap",
  "indicatif",
- "lazy_static",
  "octocrab",
  "regex",
  "reqwest",
