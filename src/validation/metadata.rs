@@ -1,11 +1,9 @@
-use lazy_static::lazy_static;
+use std::sync::LazyLock;
 
 use crate::validation::{ValidationContext, ValidationError, Validator};
 
-lazy_static! {
-    static ref CKAN_IDENTIFIER_REGEX: regex::Regex =
-        regex::Regex::new(r"^[a-zA-Z0-9][a-zA-Z0-9_-]+$").unwrap();
-}
+static CKAN_IDENTIFIER_REGEX: LazyLock<regex::Regex> =
+    LazyLock::new(|| regex::Regex::new(r"^[a-zA-Z0-9][a-zA-Z0-9_-]+$").unwrap());
 
 /// Validates that the CKAN mod identifier is valid according to CKAN's rules.
 pub struct CkanIdentifierValidator;
