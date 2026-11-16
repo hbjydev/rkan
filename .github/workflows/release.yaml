@@ -41,7 +41,7 @@ jobs:
         uses: bitshift-systems/.github/actions/setup-repo@a0aab65f0651370a9be252117577556a9ee67bab # setup-repo-v2.2.1
         with:
           cache-key: release-build
-          install-args: rust aqua:EmbarkStudios/cargo-deny hk
+          install-args: rust aqua:EmbarkStudios/cargo-deny
 
       - name: Build release binary
         id: build
