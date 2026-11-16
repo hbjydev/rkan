@@ -4,7 +4,7 @@ description = "A Rust-based CLI tool for managing CKAN metadata files and reposi
 repository = "https://github.com/hbjydev/rkan"
 readme = "README.md"
 license = "Apache-2.0"
-version = "0.3.0"
+version = "0.3.1"
 edition = "2024"
 
 [dependencies]
