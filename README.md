@@ -1,5 +1,7 @@
 # RKAN
 
+[![Crates.io Version](https://img.shields.io/crates/v/rkan)](https://crates.io/crates/rkan)
+
 Like NetKAN, but in Rust, so... RKAN.
 
 A NetKAN replacement for KSP modders to build and maintain their own CKAN
