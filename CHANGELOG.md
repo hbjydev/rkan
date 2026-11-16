@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.4](https://github.com/hbjydev/rkan/compare/v0.3.3...v0.3.4) (2026-11-16)
+
+
+### Continuous Integration
+
+* **release:** use bash in all mise tasks ([9ecf2cc](https://github.com/hbjydev/rkan/commit/9ecf2cc197ca8281773a3b058a7e7c2683dacdb8))
+
 ## [0.3.3](https://github.com/hbjydev/rkan/compare/v0.3.2...v0.3.3) (2026-11-16)
 
 
