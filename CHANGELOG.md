@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.3.2](https://github.com/hbjydev/rkan/compare/v0.3.1...v0.3.2) (2026-11-16)
+
+
+### Continuous Integration
+
+* **release:** cargo-deny isn't needed for release ([eb2d48a](https://github.com/hbjydev/rkan/commit/eb2d48a35cee8a87bcffdff1085be716571a6d0f))
+* **release:** hk isn't needed for build ([52298ef](https://github.com/hbjydev/rkan/commit/52298ef660943819736240f47a43a1ce86d9303b))
+* **release:** remove macos intel target ([534b40a](https://github.com/hbjydev/rkan/commit/534b40ac57258a6f1c6f1fa68fdb06ed7a0743d6))
+
 ## [0.3.1](https://github.com/hbjydev/rkan/compare/v0.3.0...v0.3.1) (2026-11-16)
 
 
