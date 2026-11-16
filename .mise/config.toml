@@ -10,6 +10,9 @@ hk = { version = "2.12.0", workflow = "release.yml" }
 [hooks]
 postinstall = "hk install --mise"
 
+[task_config]
+shell = "bash -c"
+
 [tasks.rust-components]
 description = "Install Rust components required by project tasks"
 run = "rustup component add rustfmt clippy"
