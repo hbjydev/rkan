@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.3](https://github.com/hbjydev/rkan/compare/v0.3.2...v0.3.3) (2026-11-16)
+
+
+### Continuous Integration
+
+* **release:** shell=bash for all tasks ([47e09ae](https://github.com/hbjydev/rkan/commit/47e09ae790d4cccc3fb20d489b5b44b39aa67146))
+
 ## [0.3.2](https://github.com/hbjydev/rkan/compare/v0.3.1...v0.3.2) (2026-11-16)
 
 
