@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.6](https://github.com/hbjydev/rkan/compare/v0.3.5...v0.3.6) (2026-11-17)
+
+
+### Bug Fixes
+
+* **binstall:** override cargo-binstall metadata to ensure source builds arent needed ([6dcd5b7](https://github.com/hbjydev/rkan/commit/6dcd5b74722bb048476811e8d39af3f8fe0e07a5))
+
 ## [0.3.5](https://github.com/hbjydev/rkan/compare/v0.3.4...v0.3.5) (2026-11-16)
 
 
