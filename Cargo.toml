@@ -31,4 +31,8 @@ indexmap = { version = "2", features = ["serde"] }
 octocrab = { version = "0.54.9", default-features = false, features = ["default-client", "rustls", "rustls-ring"] }
 
 [package.metadata.binstall]
+pkg-url = "{ repo }/releases/download/v{ version }/{ name }-v{ version }-{ target-arch }-{ target-vendor }-{ os-name }-{ target-libc }{ binary-ext }"
 pkg-fmt = "bin"
+
+[package.metadata.binstall.overrides.'cfg(target_os = "macos")']
+pkg-url = "{ repo }/releases/download/v{ version }/{ name }-v{ version }-{ target-arch }-apple-darwin"
