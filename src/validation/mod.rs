@@ -1,4 +1,4 @@
-use std::sync::LazyLock;
+use std::{path::Path, sync::LazyLock};
 
 use thiserror::Error;
 
@@ -46,7 +46,7 @@ pub enum ValidationError {
 
 pub struct ValidationContext<'a> {
     pub metadata: &'a CkanFile,
-    pub zip_path: String,
+    pub zip_path: &'a Path,
 }
 
 pub trait Validator: Send + Sync {

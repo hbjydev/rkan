@@ -3,7 +3,7 @@ use crate::validation::{ValidationContext, ValidationError, Validator};
 pub struct ZipFormatValidator;
 impl Validator for ZipFormatValidator {
     fn validate(&self, ctx: &ValidationContext) -> Result<(), ValidationError> {
-        let file = std::fs::File::open(&ctx.zip_path)
+        let file = std::fs::File::open(ctx.zip_path)
             .map_err(|e| ValidationError::InvalidZip(format!("Failed to open ZIP file: {}", e)))?;
 
         let meta = file.metadata().map_err(|e| {
@@ -35,7 +35,7 @@ mod tests {
         let validator = ZipFormatValidator;
         let ctx = ValidationContext {
             metadata: &CkanFile::default(),
-            zip_path: "tests/fixtures/valid_mod.zip".to_string(),
+            zip_path: std::path::Path::new("tests/fixtures/valid_mod.zip"),
         };
         assert!(validator.validate(&ctx).is_ok());
     }
@@ -45,7 +45,7 @@ mod tests {
         let validator = ZipFormatValidator;
         let ctx = ValidationContext {
             metadata: &CkanFile::default(),
-            zip_path: "tests/fixtures/invalid_mod.zip".to_string(),
+            zip_path: std::path::Path::new("tests/fixtures/invalid_mod.zip"),
         };
         assert!(matches!(
             validator.validate(&ctx),

@@ -6,7 +6,7 @@ impl Validator for InstallValidator {
         // Open & extract the ZIP file to a temporary directory
         let temp_dir =
             tempfile::tempdir().map_err(|e| ValidationError::InvalidZip(e.to_string()))?;
-        let zip_file = std::fs::File::open(&ctx.zip_path)
+        let zip_file = std::fs::File::open(ctx.zip_path)
             .map_err(|e| ValidationError::InvalidZip(e.to_string()))?;
         let mut zip = zip::ZipArchive::new(zip_file)
             .map_err(|e| ValidationError::InvalidZip(e.to_string()))?;
@@ -95,7 +95,7 @@ mod tests {
 
         let ctx = ValidationContext {
             metadata: &metadata,
-            zip_path: "tests/fixtures/valid_mod.zip".to_string(),
+            zip_path: std::path::Path::new("tests/fixtures/valid_mod.zip"),
         };
 
         let validator = InstallValidator;
@@ -114,7 +114,7 @@ mod tests {
 
         let ctx = ValidationContext {
             metadata: &metadata,
-            zip_path: "tests/fixtures/valid_mod.zip".to_string(),
+            zip_path: std::path::Path::new("tests/fixtures/valid_mod.zip"),
         };
 
         let validator = InstallValidator;
@@ -139,7 +139,7 @@ mod tests {
 
         let ctx = ValidationContext {
             metadata: &metadata,
-            zip_path: "tests/fixtures/valid_mod.zip".to_string(),
+            zip_path: std::path::Path::new("tests/fixtures/valid_mod.zip"),
         };
 
         let validator = InstallToValidator;
@@ -158,7 +158,7 @@ mod tests {
 
         let ctx = ValidationContext {
             metadata: &metadata,
-            zip_path: "tests/fixtures/valid_mod.zip".to_string(),
+            zip_path: std::path::Path::new("tests/fixtures/valid_mod.zip"),
         };
 
         let validator = InstallToValidator;

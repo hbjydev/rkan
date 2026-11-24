@@ -134,7 +134,7 @@ mod tests {
                 identifier: "valid-id".to_string(),
                 ..Default::default()
             },
-            zip_path: "".to_string(),
+            zip_path: std::path::Path::new(""),
         };
         assert!(validator.validate(&ctx).is_ok());
     }
@@ -147,7 +147,7 @@ mod tests {
                 identifier: "invalid id".to_string(),
                 ..Default::default()
             },
-            zip_path: "".to_string(),
+            zip_path: std::path::Path::new(""),
         };
         assert!(matches!(
             validator.validate(&ctx),
@@ -163,7 +163,7 @@ mod tests {
                 license: "CC-BY-SA-4.0".to_string(),
                 ..Default::default()
             },
-            zip_path: "".to_string(),
+            zip_path: std::path::Path::new(""),
         };
         assert!(validator.validate(&ctx).is_ok());
     }
@@ -176,7 +176,7 @@ mod tests {
                 license: "invalid license".to_string(),
                 ..Default::default()
             },
-            zip_path: "".to_string(),
+            zip_path: std::path::Path::new(""),
         };
         assert!(matches!(
             validator.validate(&ctx),
@@ -192,7 +192,7 @@ mod tests {
                 ksp_version: "1.12.2".to_string(),
                 ..Default::default()
             },
-            zip_path: "".to_string(),
+            zip_path: std::path::Path::new(""),
         };
         assert!(validator.validate(&ctx).is_ok());
     }
@@ -205,7 +205,7 @@ mod tests {
                 ksp_version: "invalid version".to_string(),
                 ..Default::default()
             },
-            zip_path: "".to_string(),
+            zip_path: std::path::Path::new(""),
         };
         assert!(matches!(
             validator.validate(&ctx),
@@ -221,7 +221,7 @@ mod tests {
                 tags: vec!["parts".to_string(), "physics".to_string()],
                 ..Default::default()
             },
-            zip_path: "".to_string(),
+            zip_path: std::path::Path::new(""),
         };
         assert!(validator.validate(&ctx).is_ok());
     }
@@ -235,7 +235,7 @@ mod tests {
                 tags: invalid_tags.clone(),
                 ..Default::default()
             },
-            zip_path: "".to_string(),
+            zip_path: std::path::Path::new(""),
         };
         assert!(matches!(
             validator.validate(&ctx),
