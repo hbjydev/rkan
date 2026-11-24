@@ -1,3 +1,5 @@
+use std::sync::LazyLock;
+
 use thiserror::Error;
 
 use crate::ckan::types::CkanFile;
@@ -5,6 +7,11 @@ use crate::ckan::types::CkanFile;
 pub mod install;
 pub mod metadata;
 pub mod zip;
+
+pub const CKAN_SCHEMA_JSON: &'static str = include_str!("./data/ckan.schema.json");
+pub static CKAN_SCHEMA: LazyLock<serde_json::Value> = LazyLock::new(|| {
+    serde_json::from_str(CKAN_SCHEMA_JSON).expect("Failed to parse CKAN schema JSON")
+});
 
 #[derive(Debug, Error)]
 pub enum ValidationError {
@@ -19,6 +26,14 @@ pub enum ValidationError {
     /// The ZIP file is missing required files or directories
     #[error("The ZIP file is missing required files or directories: {0:?}")]
     MissingFiles(Vec<String>),
+
+    /// The provided license is not recognized as a valid CKAN license
+    #[error("The provided license is not recognized as a valid CKAN license: {0:?}")]
+    InvalidLicense(String),
+
+    /// The provided KSP version is not recognized as a valid CKAN KSP version
+    #[error("The provided KSP version is not recognized as a valid CKAN KSP version: {0:?}")]
+    InvalidKspVersion(String),
 
     /// The provided tag(s) are not recognized as valid CKAN tags
     #[error("The provided tag(s) are not recognized as valid CKAN tags: {0:?}")]
@@ -43,6 +58,7 @@ pub fn default_validators() -> Vec<Box<dyn Validator>> {
         // Metadata validators
         Box::new(metadata::CkanIdentifierValidator {}),
         Box::new(metadata::CkanTagsValidator {}),
+        Box::new(metadata::CkanLicenseValidator {}),
         // ZIP file validators
         Box::new(zip::ZipFormatValidator {}),
         // Installation validators
