@@ -13,7 +13,7 @@
           "minimum": 1,
           "maximum": 1
         },
-        { "type": "string", "description": "A vx.x string", "pattern": "^v[0-9]+\.[0-9]+$" }
+        { "type": "string", "description": "A vx.x string", "pattern": "^v[0-9]+\\.[0-9]+$" }
       ]
     },
     "name": { "description": "Human readable name of the mod", "type": "string" },
@@ -200,7 +200,7 @@
           "as": {
             "description": "The name to give the matching directory or file when installed",
             "type": "string",
-            "pattern": "^[^\\/]+$"
+            "pattern": "^[^\\\\/]+$"
           },
           "filter": {
             "description": "List of files and directories that should be filtered from the install",
@@ -260,7 +260,7 @@
     "ksp_version": {
       "description": "A game version",
       "type": "string",
-      "pattern": "^(any|[0-9]+(\.[0-9]+(\.[0-9]+)?)?)$"
+      "pattern": "^(any|[0-9]+(\\.[0-9]+(\\.[0-9]+)?)?)$"
     },
     "relationship": {
       "description": "A relationship to a list of mods",

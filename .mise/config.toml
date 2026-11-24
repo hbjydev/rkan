@@ -81,3 +81,11 @@ depends = [
   "build",
   "test",
 ]
+
+[tasks.update-ckan-schema]
+description = "Update the CKAN schema to the latest version"
+run = '''
+schema_url="https://github.com/KSP-CKAN/CKAN/raw/refs/heads/master/CKAN.schema"
+minified="$(curl -sSL "$schema_url" | jq -c)"
+echo "$minified" > src/validation/data/ckan.schema.json
+'''
