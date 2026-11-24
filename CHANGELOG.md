@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.3.7](https://github.com/hbjydev/rkan/compare/v0.3.6...v0.3.7) (2026-11-24)
+
+
+### Features
+
+* **validation:** bring in more validators from ckan schema ([5ffd25a](https://github.com/hbjydev/rkan/commit/5ffd25a9266b0865bcab26e5b456071fa30cc2b0))
+
+
+### Bug Fixes
+
+* **rust:** update crate clap (4.6.7 → 4.6.9) ([#29](https://github.com/hbjydev/rkan/issues/29)) ([bf2a9d1](https://github.com/hbjydev/rkan/commit/bf2a9d1a8588ba7b951ee27b26bdf0dabd14d46f))
+* **rust:** update crate regex (1.13.1 → 1.13.2) ([#33](https://github.com/hbjydev/rkan/issues/33)) ([f34357b](https://github.com/hbjydev/rkan/commit/f34357bc3acc93b124fcd1d973e46dcde8453903))
+* **validation:** include ksp version validator in default set ([3da05c2](https://github.com/hbjydev/rkan/commit/3da05c220975c1d36d03b0f922befbcd37e7f4ea))
+
+
+### Build System
+
+* **ckan-schema:** automate updating the schema file from ckan main ([4f3a6f0](https://github.com/hbjydev/rkan/commit/4f3a6f0540fa7915cf76ce08a1c3abf0082cd38b))
+
+
+### Miscellaneous Chores
+
+* **audit:** add exclusions for two advisories i cant fix here ([d271d23](https://github.com/hbjydev/rkan/commit/d271d231bd7961d5d72307594817e45d162803ce))
+* **clippy:** remove static lifetime from schema const ([a34491e](https://github.com/hbjydev/rkan/commit/a34491e07bc9622c62937e4db3bf7088fce4a594))
+
 ## [0.3.6](https://github.com/hbjydev/rkan/compare/v0.3.5...v0.3.6) (2026-11-17)
 
 
