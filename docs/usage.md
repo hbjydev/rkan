@@ -27,6 +27,19 @@ rkan generate --configs-dir ./mod-configs --out-dir ./metadata
 Paths are relative to the directory where you run the command.
 The input directory must exist. RKAN creates the output directories as needed.
 
+## Cache release downloads
+
+RKAN uses the SHA-256 digest from GitHub to reuse downloaded ZIPs across runs.
+It checks the cached ZIP against the digest before using it to generate metadata.
+Assets without a SHA-256 digest are downloaded into temporary storage each run.
+
+Cached ZIPs live in `~/.cache/rkan/artifacts/` by default, or in
+`$XDG_CACHE_HOME/rkan/artifacts/` when `XDG_CACHE_HOME` is an absolute path.
+Use `RKAN_CACHE_HOME` to set the RKAN cache directory directly. For example,
+`RKAN_CACHE_HOME="$PWD/.rkan-cache" rkan generate` stores ZIPs under
+`.rkan-cache/artifacts/`. In CI, restore that cache directory before running RKAN
+and save it afterwards.
+
 ## Select mods
 
 Filters match the `identifier` field exactly, including letter case.
@@ -101,10 +114,9 @@ For a mod named `MyCoolMod`, a `4k` variant, and a `v1.0.0` release, the path is
 `ckan/MyCoolMod/MyCoolMod-4k-v1.0.0.ckan`.
 Without variants, the generated identifier equals the base identifier.
 
-The metadata includes download URLs, file sizes, and SHA-1 and SHA-256 hashes,
-the values used to identify file contents. RKAN downloads and extracts ZIP
-files into temporary storage during generation. Each run downloads the assets
-again.
+The metadata includes download URLs, file sizes, and SHA-1 and SHA-256 hashes.
+RKAN also inspects the ZIP contents to calculate the installed size and validate
+installation paths.
 
 A successful run returns exit status `0`. A failed run returns a nonzero status.
 Files from successful mods can remain after another mod fails.

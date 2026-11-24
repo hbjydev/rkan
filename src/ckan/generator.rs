@@ -8,12 +8,7 @@ use super::types::{
     CkanDependency, CkanDownloadHash, CkanFile, CkanInstallDirective, CkanReleaseStatus,
     CkanResources,
 };
-use crate::{
-    ckan::types::LATEST_SPEC_VERSION,
-    config::Mod,
-    github::{DownloadedAsset, GithubClient},
-    validation,
-};
+use crate::{ckan::types::LATEST_SPEC_VERSION, config::Mod, github::GithubClient, validation};
 
 struct FileTask {
     identifier: String,
@@ -216,19 +211,8 @@ async fn generate_file(
             .ok_or("Release does not have any assets".to_string())?
     };
 
-    let workdir = std::env::temp_dir().join(env!("CARGO_PKG_NAME"));
-    if !workdir.exists() {
-        std::fs::create_dir_all(&workdir)?;
-    }
-
-    let DownloadedAsset {
-        size: download_size,
-        hash_sha256: download_hash_sha256,
-        hash_sha1: download_hash_sha1,
-        temp_file,
-    } = gh.download_and_hash(asset.clone(), Some(&workdir)).await?;
-
-    let install_size = check_install_size(temp_file.path())?;
+    let downloaded = gh.download_and_hash(asset).await?;
+    let install_size = check_install_size(downloaded.path())?;
     tracing::debug!("Install size: {}", install_size);
 
     let ckan_file = CkanFile {
@@ -248,10 +232,10 @@ async fn generate_file(
         install: ctx.install.clone(),
         ksp_version: ctx.ksp_version.to_string(),
         download: asset.browser_download_url.to_string(),
-        download_size,
+        download_size: downloaded.size,
         download_hash: CkanDownloadHash {
-            sha256: download_hash_sha256,
-            sha1: download_hash_sha1,
+            sha256: downloaded.hash_sha256.clone(),
+            sha1: downloaded.hash_sha1.clone(),
         },
         // CKAN doesn't know how to process any other content types, so we hardcode it to
         // application/zip.
@@ -268,7 +252,7 @@ async fn generate_file(
         &validation::default_validators(),
         &validation::ValidationContext {
             metadata: &ckan_file,
-            zip_path: temp_file.path().to_string_lossy().to_string(),
+            zip_path: downloaded.path(),
         },
     )?;
 
