@@ -8,7 +8,7 @@ pub mod install;
 pub mod metadata;
 pub mod zip;
 
-pub const CKAN_SCHEMA_JSON: &'static str = include_str!("./data/ckan.schema.json");
+pub const CKAN_SCHEMA_JSON: &str = include_str!("./data/ckan.schema.json");
 pub static CKAN_SCHEMA: LazyLock<serde_json::Value> = LazyLock::new(|| {
     serde_json::from_str(CKAN_SCHEMA_JSON).expect("Failed to parse CKAN schema JSON")
 });
