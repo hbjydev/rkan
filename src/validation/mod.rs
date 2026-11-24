@@ -59,6 +59,7 @@ pub fn default_validators() -> Vec<Box<dyn Validator>> {
         Box::new(metadata::CkanIdentifierValidator {}),
         Box::new(metadata::CkanTagsValidator {}),
         Box::new(metadata::CkanLicenseValidator {}),
+        Box::new(metadata::CkanKspVersionValidator {}),
         // ZIP file validators
         Box::new(zip::ZipFormatValidator {}),
         // Installation validators
