@@ -1,6 +1,9 @@
 [advisories]
 version = 2
-ignore = []
+ignore = [
+  "RUSTSEC-2026-0592",  # url doesn't have a patched reqwest or octocrab release yet
+  "RUSTSEC-2026-0543",  # chrono is unmaintained
+]
 
 [licenses]
 version = 2
