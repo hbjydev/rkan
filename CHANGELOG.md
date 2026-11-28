@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.3.8](https://github.com/hbjydev/rkan/compare/v0.3.7...v0.3.8) (2026-11-28)
+
+
+### Features
+
+* **rust:** update crate zip (9.6.0 → 9.8.2) ([#30](https://github.com/hbjydev/rkan/issues/30)) ([ea9dcaf](https://github.com/hbjydev/rkan/commit/ea9dcaf0e9829af8a630bc08099ac1fadd211e6b))
+
+
+### Bug Fixes
+
+* **rust:** update crate clap (4.6.9 → 4.6.10) ([#39](https://github.com/hbjydev/rkan/issues/39)) ([68705d1](https://github.com/hbjydev/rkan/commit/68705d1e1b2f9030db77b757dc2513bfe74557d5))
+* **rust:** update crate toml (1.2.1+spec-1.1.0 → 1.2.2) ([#34](https://github.com/hbjydev/rkan/issues/34)) ([1704879](https://github.com/hbjydev/rkan/commit/1704879606ae4f3413734c554c7645dac39e888d))
+
+
+### Documentation
+
+* **demo:** refresh terminal recording ([32122f3](https://github.com/hbjydev/rkan/commit/32122f3fb82f6a0be06b5fcb9e43da6e4885416c))
+* **demo:** refresh terminal recording ([dbe377d](https://github.com/hbjydev/rkan/commit/dbe377df887a926e88afd4a97180571ebedea716))
+* **demo:** refresh terminal recording ([8b006eb](https://github.com/hbjydev/rkan/commit/8b006eb55302ee5b68b4e5d4c1168134c820a340))
+* **demo:** refresh terminal recording ([7b6634d](https://github.com/hbjydev/rkan/commit/7b6634d1d36595c912d8a3ae8cef9101b22c0315))
+* **demo:** refresh terminal recording ([fc30f6d](https://github.com/hbjydev/rkan/commit/fc30f6d83790ca6395b8fa65bec681e865bae9b5))
+
+
+### Miscellaneous Chores
+
+* **mise:** update tool hk (2.12.0 → 2.13.0) ([#32](https://github.com/hbjydev/rkan/issues/32)) ([b657ec2](https://github.com/hbjydev/rkan/commit/b657ec26ff1ff12fb62717db6a7e9b86b7b7694c))
+* **mise:** update tool hk (2.13.0 → 2.14.0) ([#38](https://github.com/hbjydev/rkan/issues/38)) ([ed2264b](https://github.com/hbjydev/rkan/commit/ed2264bd86149c77b45297feb2c9d64af982aacc))
+
 ## [0.3.7](https://github.com/hbjydev/rkan/compare/v0.3.6...v0.3.7) (2026-11-24)
 
 
